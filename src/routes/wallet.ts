@@ -71,7 +71,7 @@ export const needUserUUID=(req:Request, res:Response, next:NextFunction)=>{
    * @swagger
    * /wallet:
    *   get:
-   *     summary: 월렛 정보 조회 [W-1]
+   *     summary: 월렛 정보 조회 [W-1]  [사용 x]
    *     parameters:
    *       - in: header
    *         name: UUID
@@ -80,18 +80,21 @@ export const needUserUUID=(req:Request, res:Response, next:NextFunction)=>{
    *         required: true
    *     tags:
    *      - Wallet
-   *     description: 월렛 정보 조회 [W-1]
+   *     description: 월렛 정보 조회 [W-1] [사용 x]
    *     responses:
    *       200:
+   *         description: data 는 
    *         content:
    *           application/json:
    *             schema:
    *               $ref: '#/components/schemas/ResponseT'
+
    *             
    *         
    */
 
-router.get('/', needUserUUID, async(req:Request, res:Response, next:NextFunction)=> {
+router.get('/', async(req:Request, res:Response, next:NextFunction)=> {
+    
     try {
         fs.readFile(`./db/keystores/${req.uuid}.json`,'utf8',async(err, data)=>{
             const d: WalletT = JSON.parse(data);
@@ -129,6 +132,9 @@ router.get('/', needUserUUID, async(req:Request, res:Response, next:NextFunction
    *           application/json:
    *             schema:
    *               $ref: '#/components/schemas/ResponseT'
+   *               properties:
+   *                 data:
+   *                   $ref: '#/components/schemas/WalletT'
    *             
    *         
    */
@@ -179,7 +185,7 @@ router.post('/create', async(req:Request, res:Response, next:NextFunction)=> {
    * @swagger
    * /wallet/accounts:
    *   get:
-   *     summary: 지갑 계좌주소리스트 조회 [W-3]
+   *     summary: 지갑 계좌주소리스트 조회 [W-3] [사용x]
    *     parameters:
    *       - in: header
    *         name: UUID
@@ -188,7 +194,7 @@ router.post('/create', async(req:Request, res:Response, next:NextFunction)=> {
    *         required: true
    *     tags:
    *      - Wallet
-   *     description: 지갑 계좌주소리스트 조회 [W-3]
+   *     description: 지갑 계좌주소리스트 조회 [W-3] [사용x]
    *     responses:
    *       200:
    *         content:
@@ -210,17 +216,46 @@ router.get('/accounts', needUserUUID, async(req:Request, res:Response, next:Next
     }
 });
 
+
+// router.get('/accounts/add/new2',needUserUUID,async(req:Request, res:Response, next:NextFunction)=> {
+//     try {
+//        const newAccount=web3.eth.accounts.create();
+//        console.log(newAccount);
+//        fs.readFile(`./db/keystores/${req.uuid}.json`,'utf8',async(err, data)=>{
+//            const d:WalletT = JSON.parse(data);
+//            const renewdWallet:WalletT={
+//                ...d,
+//                addresses:[
+//                    ...d.addresses,
+//                    newAccount,
+//                ]
+//            }
+//            fs.writeFile(`./db/keystores/${req.uuid}.json`, JSON.stringify(renewdWallet) ,(err)=> console.log(err));
+//            res.status(200).json({success:true, message:'추가계좌개설 성공', data:{renewdWallet}})
+   
+//        });
+//     } catch(err){
+//         res.status(500).json({success:false, message:`추가계좌개설 실패:${err}`, data:null});
+//     }
+// });
+
+
+//uuid 없이 . 계좌개성하기 
 /**
    * @swagger
    * /wallet/accounts/add/new:
-   *   get:
+   *   post:
    *     summary: 새로운 주소 만들고 지갑에 추가하기 [W-4]
-   *     parameters:
-   *       - in: header
-   *         name: UUID
-   *         schema:
-   *           type: string
-   *         required: true
+   *     requestBody:
+   *       description: 월렛 정보 보내주세요.
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               wallet:
+   *                 $ref: '#/components/schemas/WalletT' 
    *     tags:
    *      - Wallet
    *     description: 새로운 주소 만들고 지갑에 추가하기 [W-4]
@@ -234,30 +269,6 @@ router.get('/accounts', needUserUUID, async(req:Request, res:Response, next:Next
    *         
    */
 //랜덤 계좌 추가
-router.get('/accounts/add/new2',needUserUUID,async(req:Request, res:Response, next:NextFunction)=> {
-    try {
-       const newAccount=web3.eth.accounts.create();
-       console.log(newAccount);
-       fs.readFile(`./db/keystores/${req.uuid}.json`,'utf8',async(err, data)=>{
-           const d:WalletT = JSON.parse(data);
-           const renewdWallet:WalletT={
-               ...d,
-               addresses:[
-                   ...d.addresses,
-                   newAccount,
-               ]
-           }
-           fs.writeFile(`./db/keystores/${req.uuid}.json`, JSON.stringify(renewdWallet) ,(err)=> console.log(err));
-           res.status(200).json({success:true, message:'추가계좌개설 성공', data:{renewdWallet}})
-   
-       });
-    } catch(err){
-        res.status(500).json({success:false, message:`추가계좌개설 실패:${err}`, data:null});
-    }
-});
-
-
-//uuid 없이 . 계좌개성하기 
 router.post('/accounts/add/new',async(req:Request, res:Response, next:NextFunction)=> {
     const wallet=req.body.wallet;
     try {
@@ -285,14 +296,8 @@ router.post('/accounts/add/new',async(req:Request, res:Response, next:NextFuncti
    * /wallet/accounts/add/origin:
    *   post:
    *     summary: 다른곳에 보유한 내 주소 가져와서 지갑에 추가하기 [W-5]
-   *     parameters:
-   *       - in: header
-   *         name: UUID
-   *         schema:
-   *           type: string
-   *         required: true
    *     requestBody:
-   *       description: 추가할 주소의 비공개키(privateKey)를 보내주세요
+   *       description: 추가할 주소의 비공개키(privateKey)와 월렛정보 보내주세요.
    *       required: true
    *       content:
    *         application/json:
@@ -300,7 +305,9 @@ router.post('/accounts/add/new',async(req:Request, res:Response, next:NextFuncti
    *             type: object
    *             properties:
    *               privateKey:
-   *                 type: string   
+   *                 type: string  
+   *               wallet:
+   *                 $ref: '#/components/schemas/WalletT' 
    *     tags:
    *      - Wallet
    *     description: 다른곳에 보유한 내 주소 가져와서 지갑에 추가하기 [W-5]
@@ -313,31 +320,54 @@ router.post('/accounts/add/new',async(req:Request, res:Response, next:NextFuncti
    *             
    *         
    */
-//랜덤 계좌 추가
-router.post('/accounts/add/origin',needUserUUID,async(req:Request, res:Response, next:NextFunction)=> {
+
+router.post('/accounts/add/origin',async(req:Request, res:Response, next:NextFunction)=> {
+    const wallet=req.body.wallet;
   const privateKey=req.body.privateKey;
     
     try {
         const newAccount:Web3AddressT =web3.eth.accounts.privateKeyToAccount(privateKey);
        console.log(newAccount);
-       fs.readFile(`./db/keystores/${req.uuid}.json`,'utf8',async(err, data)=>{
-           const d:WalletT = JSON.parse(data);
-           const renewdWallet:WalletT={
-               ...d,
-               addresses:[
-                   ...d.addresses,
-                   newAccount,
-               ]
-           }
-           fs.writeFile(`./db/keystores/${req.uuid}.json`, JSON.stringify(renewdWallet) ,(err)=> console.log(err));
-           res.status(200).json({success:true, message:'주소 추가 성공', data:{renewdWallet}})
-   
-       });
+     
+       const d:WalletT = wallet as WalletT;
+       const renewdWallet:WalletT={
+           ...d,
+           addresses:[
+               ...d.addresses,
+               newAccount,
+           ]
+       }
+       res.status(200).json({success:true, message:'주소 추가 성공', data:renewdWallet})
     } catch(err){
         res.status(500).json({success:false, message:`주소 추가 실패:${err}`, data:null});
     }
 });
 
+
+// router.post('/accounts/add/origin2',needUserUUID,async(req:Request, res:Response, next:NextFunction)=> {
+//     const privateKey=req.body.privateKey;
+      
+//       try {
+//           const newAccount:Web3AddressT =web3.eth.accounts.privateKeyToAccount(privateKey);
+//          console.log(newAccount);
+//          fs.readFile(`./db/keystores/${req.uuid}.json`,'utf8',async(err, data)=>{
+//              const d:WalletT = JSON.parse(data);
+//              const renewdWallet:WalletT={
+//                  ...d,
+//                  addresses:[
+//                      ...d.addresses,
+//                      newAccount,
+//                  ]
+//              }
+//              fs.writeFile(`./db/keystores/${req.uuid}.json`, JSON.stringify(renewdWallet) ,(err)=> console.log(err));
+//              res.status(200).json({success:true, message:'주소 추가 성공', data:{renewdWallet}})
+     
+//          });
+//       } catch(err){
+//           res.status(500).json({success:false, message:`주소 추가 실패:${err}`, data:null});
+//       }
+//   });
+  
 /**
    * @swagger
    * /wallet/balance/{address}:

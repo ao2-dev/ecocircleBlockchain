@@ -26,6 +26,7 @@ router.use('/wallet', wallterRouter);
  * components:
  *  schemas:
  *    ResponseT:
+ *      description: API 응답데이터 형식(모두 동일)
  *      type: object
  *      properties:
  *        success: 
@@ -36,6 +37,32 @@ router.use('/wallet', wallterRouter);
  *          anyOf:
  *          - type: object
  *          nullable: true
+ *    WalletT:
+ *      description: 지갑 정보가 담길 테이블(타입) 입니다.
+ *      type: object
+ *      properties:
+ *        keystore: 
+ *          type: string
+ *        addresses: 
+ *          type: array
+ *          items: 
+ *            $ref: '#/components/schemas/Web3AddressT'
+ *        uuid:
+ *          type: string
+ *        mnemonic:
+ *          type: string
+ *    Web3AddressT:
+ *      description: 지갑 내에 저장될 주소 테이블(타입) 입니다. 
+ *      type: object
+ *      properties:
+ *        index: 
+ *          type: integer
+ *        address: 
+ *          type: string
+ *        privateKey:
+ *          type: string
+ *      
+ *    
  *           
  *    Dog:
  *      type: object
