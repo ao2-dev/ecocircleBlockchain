@@ -1,11 +1,7 @@
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -37,18 +33,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.needUserUUID = void 0;
 const express_1 = __importDefault(require("express"));
-const eth_lightwallet_1 = __importDefault(require("eth-lightwallet"));
+const web3_1 = __importDefault(require("web3"));
 const fs_1 = __importDefault(require("fs"));
 const uuid_1 = require("uuid");
 const dotenv = __importStar(require("dotenv"));
 const ethers_1 = require("ethers");
-const contracts_1 = require("../contracts");
 dotenv.config();
 const router = express_1.default.Router();
 const { OWNER_PRIVATE_KEY, INFURA_ROPSTEN_SERVER, OWNER_ADDRESS, INFURA_API_KEY } = process.env;
+const web3 = new web3_1.default(new web3_1.default.providers.HttpProvider(INFURA_ROPSTEN_SERVER));
 const provider = new ethers_1.ethers.providers.InfuraProvider("ropsten", INFURA_API_KEY);
-const sc = new ethers_1.ethers.Contract(contracts_1.Token.address, contracts_1.Token.abi, provider);
-const signer = new ethers_1.ethers.Wallet(OWNER_PRIVATE_KEY, provider);
 const needUserUUID = (req, res, next) => {
     //header에서 'UUID' 값을 주어야함.
     const uuid = req.get('UUID');
@@ -62,187 +56,166 @@ const needUserUUID = (req, res, next) => {
     }
 };
 exports.needUserUUID = needUserUUID;
-// 신규 지갑 생성 : 니모닉은 지갑을 구분하는 문구임. privatekey만 있으면 account는 가져올 수 있음
+// 신규 지갑 생성 : 니모닉은 지갑을 구분하는 문구임. privatekey만 있으면 account는 가져올 수 있음 ==> 프론트에서 secure storage 저장
 //생성시 provider 없음
-router.post('/create/new', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+router.post('/create', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const password = req.body.password;
     try {
-        // 월렛 생성
         const wallet = ethers_1.Wallet.createRandom();
-        //wallet.connect(provider);
-        console.log('===wallet===');
-        console.log(wallet);
-        console.log('----address----');
-        const address = wallet.address;
-        console.log(wallet.address);
-        console.log('----privatekey----');
-        const privateKey = wallet.privateKey;
-        console.log(wallet.privateKey);
-        console.log('----provider----');
-        const walletProvider = wallet.provider;
-        console.log(wallet.provider);
-        console.log('----mnemonic----');
-        const mnemonic = wallet.mnemonic;
-        console.log(wallet.mnemonic);
-        //    console.log('----path----')
-        //    console.log(wallet.path);
-        wallet.encrypt(password, (progress) => {
+        wallet.connect(provider).encrypt(password, (progress) => {
             console.log("Encrypting: " + parseInt(progress) * 100 + "% complete");
-        }).then((json) => {
-            console.log(wallet);
-            console.log(json);
-            console.log("-====---walet provider----");
-            console.log(walletProvider);
-            // const  mnemonic = lightwallet.keystore.generateRandomSeed();
-            const uuid = (0, uuid_1.v5)(`${wallet.mnemonic}`, '1a30bae5-e589-47b1-9e77-a7da2cdbc2b8');
-            console.log(uuid);
-            const saving = { keystore: json, privateKey: `${wallet.privateKey}`, address: `${wallet.address}`, uuid: uuid, mnemonic: `${wallet.mnemonic}` };
+        }).then((keystore) => {
+            const address = web3.eth.accounts.privateKeyToAccount(`${wallet.privateKey}`);
+            console.log(`==-=====ADDRESS=====`);
+            console.log(address);
+            console.log('==================');
+            console.log(`==-=====KEYSTORE=====`);
+            console.log(keystore);
+            console.log('==================');
+            const walletMnemonic = wallet.mnemonic; // 있음 
+            const uuid = (0, uuid_1.v5)(`${wallet.mnemonic.phrase}`, '1a30bae5-e589-47b1-9e77-a7da2cdbc2b8');
+            const saving = {
+                wallet: wallet,
+                keystore: keystore,
+                addresses: [address],
+                uuid: uuid,
+                mnemonic: walletMnemonic.phrase,
+            };
             fs_1.default.writeFile(`./db/keystores/${uuid}.json`, JSON.stringify(saving), (err) => console.log(err));
-            res.status(200).json({ success: true, message: '지갑 생성 완료', data: { wallet, json, saving } });
+            res.status(200).json({ success: true, message: '지갑 생성 완료', data: { wallet: saving } });
         });
-        // res.status(200).json({success:true, message:'지갑 생성 완료', data:{wallet,address, privateKey, provider:walletProvider, devProvider:provider, mnemonic }});
     }
     catch (err) {
         console.log(err);
         res.status(500).json({ success: false, message: `지갑 생성 실패:${err}`, err: err });
     }
 }));
-//기존에 account가 있고 아직 wallet 은 없을 때, 기존에 보유한 account 만 있으면 자동 월렛 생성
-//생성시 provider 없이 가고, mnemonic 생성해주어야 함
-router.post('/create/from', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const privateKey = req.body.privateKey;
-    const password = req.body.password;
+//유저 지갑 계좌 모두 조회
+router.get('/accounts', exports.needUserUUID, (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        //     const  mnemonic = lightwallet.keystore.generateRandomSeed();
-        //    const walletMnemonic = Wallet.fromMnemonic(mnemonic);
-        //    const walletPrivateKey=new Wallet(walletMnemonic.privateKey);
-        const wallet = new ethers_1.Wallet(privateKey);
-        console.log('===wallet===');
-        console.log(wallet);
-        console.log('----address----');
-        const address = wallet.address;
-        console.log(wallet.address);
-        console.log('----privatekey----');
-        const walletPrivateKey = wallet.privateKey;
-        console.log(wallet.privateKey);
-        console.log('----provider----');
-        const walletProvider = wallet.provider;
-        console.log(wallet.provider);
-        console.log('----mnemonic----');
-        const mnemonic = wallet.mnemonic;
-        console.log(wallet.mnemonic);
-        wallet.encrypt(password, (progress) => {
-            console.log("Encrypting: " + parseInt(progress) * 100 + "% complete");
-        }).then((json) => {
-            console.log(wallet);
-            console.log(json);
-            console.log("-====---walet provider----");
-            console.log(walletProvider);
-            const mnemonic = eth_lightwallet_1.default.keystore.generateRandomSeed();
-            const uuid = (0, uuid_1.v5)(mnemonic, '1a30bae5-e589-47b1-9e77-a7da2cdbc2b8');
-            console.log(uuid);
-            const saving = { keystore: json, privateKey: `${wallet.privateKey}`, address: `${wallet.address}`, uuid: uuid, mnemonic: `${wallet.mnemonic}` };
-            fs_1.default.writeFile(`./db/keystores/${uuid}.json`, JSON.stringify(saving), (err) => console.log(err));
-            res.status(200).json({ success: true, message: '지갑 생성 완료', data: { wallet, json, saving } });
-        });
+        fs_1.default.readFile(`./db/keystores/${req.uuid}.json`, 'utf8', (err, data) => __awaiter(void 0, void 0, void 0, function* () {
+            const d = JSON.parse(data);
+            res.status(200).json({ success: true, message: '주소 리스트 조회 성공', data: d.addresses });
+        }));
+    }
+    catch (err) {
+        res.status(500).json({ success: false, message: `주소 리스트 조회 실패:${err}`, data: null });
+    }
+}));
+//랜덤 계좌 추가
+router.get('/accounts/add/new', exports.needUserUUID, (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const newAccount = web3.eth.accounts.create();
+        console.log(newAccount);
+        fs_1.default.readFile(`./db/keystores/${req.uuid}.json`, 'utf8', (err, data) => __awaiter(void 0, void 0, void 0, function* () {
+            const d = JSON.parse(data);
+            const renewdWallet = Object.assign(Object.assign({}, d), { addresses: [
+                    ...d.addresses,
+                    newAccount,
+                ] });
+            fs_1.default.writeFile(`./db/keystores/${req.uuid}.json`, JSON.stringify(renewdWallet), (err) => console.log(err));
+            res.status(200).json({ success: true, message: '추가계좌개설 성공', data: { renewdWallet } });
+        }));
+    }
+    catch (err) {
+        res.status(500).json({ success: false, message: `추가계좌개설 실패:${err}`, data: null });
+    }
+}));
+// 기존 다른 곳에 보유중인 계좌 추가
+router.post('/accounts/add/from', exports.needUserUUID, (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const privateKey = req.body.privateKey;
+    try {
+        const newAccount = web3.eth.accounts.privateKeyToAccount(privateKey);
+        console.log(newAccount);
+        fs_1.default.readFile(`./db/keystores/${req.uuid}.json`, 'utf8', (err, data) => __awaiter(void 0, void 0, void 0, function* () {
+            const d = JSON.parse(data);
+            const renewdWallet = Object.assign(Object.assign({}, d), { addresses: [
+                    ...d.addresses,
+                    newAccount,
+                ] });
+            fs_1.default.writeFile(`./db/keystores/${req.uuid}.json`, JSON.stringify(renewdWallet), (err) => console.log(err));
+            res.status(200).json({ success: true, message: '주소 추가 성공', data: { renewdWallet } });
+        }));
+    }
+    catch (err) {
+        res.status(500).json({ success: false, message: `주소 추가 실패:${err}`, data: null });
+    }
+}));
+//이더리움 잔액조회
+router.get('/balance/:address', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const address = req.params['address'];
+    try {
+        const balance = yield provider.getBalance(address);
+        console.log(balance);
+        res.status(200).json({ success: true, message: `이더리움 잔액조회 성공`, data: { balance: balance } }); //balance 는 bigNumber 이고, bigNumber  는  .toString() 해주어야함.
     }
     catch (err) {
         console.log(err);
-        res.status(500).json({ success: false, message: `지갑 생성 실패:${err}`, err: err });
+        res.status(500).json({ success: false, message: `이더리움 잔액조회 실패:${err}`, data: null });
     }
 }));
-router.post('/decrypted', exports.needUserUUID, (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+router.post('/decrypt', exports.needUserUUID, (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const uuid = req.get('UUID');
     const password = req.body.password;
     try {
         fs_1.default.readFile(`./db/keystores/${req.uuid}.json`, 'utf8', (err, data) => __awaiter(void 0, void 0, void 0, function* () {
             const d = JSON.parse(data);
-            yield ethers_1.Wallet.fromEncryptedJson(d.keystore, password).then((wallet) => {
-                console.log('===wallet===');
-                console.log(wallet);
-                console.log('----address----');
-                const address = wallet.address;
-                console.log(wallet.address);
-                console.log('----privatekey----');
-                const walletPrivateKey = wallet.privateKey;
-                console.log(wallet.privateKey);
-                console.log('----provider----');
-                const walletProvider = wallet.provider;
-                console.log(wallet.provider);
-                console.log('----mnemonic----');
-                let mnemonic;
-                if (wallet.mnemonic === null) {
-                    mnemonic = d.mnemonic;
-                }
-                else {
-                    mnemonic = wallet.mnemonic;
-                }
-                console.log(mnemonic);
-                res.status(200).json({ success: true, message: '지갑 정보 얻기 완료', data: { wallet, address, walletPrivateKey, walletProvider, mnemonic } });
-            });
+            res.status(200).json({ success: true, message: '주소 리스트 조회 성공', data: d.addresses });
+        }));
+    }
+    catch (err) {
+        res.status(500).json({ success: false, message: `주소 리스트 조회 실패:${err}`, data: null });
+    }
+}));
+router.post('/update', exports.needUserUUID, (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        fs_1.default.readFile(`./db/keystores/${req.uuid}.json`, 'utf8', (err, data) => __awaiter(void 0, void 0, void 0, function* () {
         }));
     }
     catch (err) {
     }
 }));
-// // 처음으로 지갑 생성 : 니모닉 + 
-// router.get('/create', async(req:Request, res:Response, next:NextFunction)=> {
-//     const password=req.body.password;
-//     try{
-//         //니모닉 생성
-//         const  mnemonic = lightwallet.keystore.generateRandomSeed();
-//         //uuid 생성
-//         const uuid=v5(mnemonic,'1a30bae5-e589-47b1-9e77-a7da2cdbc2b8');
-//       //니모닉 으로부터 지갑 생성 , 이때 address 랜덤 생성됨
-//         const path = "m/44'/60'/1'/0/0";
-//        const wallet= Wallet.fromMnemonic(mnemonic);
-//        console.log(wallet.privateKey);
-//        res.status(200).json({success:true, message:'지갑 생성 완료', data:wallet});
-//     } catch(err){
-//         console.log(err);
-//         res.status(500).json({success:false, message:`지갑 생성 실패:${err}`, err:err})
-//     }
-// });
-// 프라이빗 키로 가져와서 월렛 생성
-router.get('/create/privatekey', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+////==========================보류 ===============================///
+//[x]  아직 보류 !!~!// 신규 지갑 생성 : 니모닉은 지갑을 구분하는 문구임. privatekey만 있으면 account는 가져올 수 있음 ==> 프론트에서 secure storage 저장
+//생성시 provider 없음
+router.post('/create/web3/new', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    //const password=req.body.password;
     try {
-        const privateKey = "27f886d160e9c58c73edeb6da00fbf1a2e7073a2f353e6d04241231fc9c15dde";
-        const wallet = new ethers_1.Wallet(privateKey, provider);
-        const encryptPromise = wallet.encrypt("12345", (progress) => {
-            console.log("Encrypting: " + parseInt(progress) * 100 + "% complete");
-        }).then((json) => {
-            console.log(wallet);
-            console.log(json);
-            res.status(200).json({ success: true, message: '지갑 생성 완료', data: { wallet, json } });
+        const newWallet = web3.eth.accounts.wallet.create(1);
+        const newAddress = web3.eth.accounts.create();
+        console.log(`==-=====ADDRESS=====`);
+        console.log(newAddress);
+        console.log('==================');
+        newWallet.add({
+            privateKey: newAddress.privateKey,
+            address: newAddress.address,
         });
+        console.log(newWallet);
+        console.log(newWallet["0"]);
+        //   wallet.add({
+        //         privateKey:`${wallet.privateKey}`,
+        //         address: `${wallet.address}`,
+        //     });
+        const keystore = newWallet.encrypt("12345");
+        console.log(keystore);
+        //  const uuid=v5(`${wallet.mnemonic.phrase}`,'1a30bae5-e589-47b1-9e77-a7da2cdbc2b8');
+        //  const saving:UserWalletInfoT={
+        //      keystore:keystore,
+        //      addresses:[
+        //          {address:defaultAddress,
+        //          privateKey:privateKey,
+        //          }
+        //      ],
+        //      uuid:uuid,
+        //      mnemonic:walletMnemonic.phrase,
+        //  };
+        //fs.writeFile(`./db/keystores/${uuid}.json`, JSON.stringify(saving) ,(err)=> console.log(err));
+        res.status(200).json({ success: true, message: '지갑 생성 완료', data: null });
     }
     catch (err) {
         console.log(err);
         res.status(500).json({ success: false, message: `지갑 생성 실패:${err}`, err: err });
     }
 }));
-// 니모닉으로 월렛 생성
-router.get('/create/mnemonic', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const mnemonic = "wealth steak high hunt mad family coil result book tuition erosion mountain";
-        const path = "m/44'/60'/1'/0/0";
-        const wallet = ethers_1.ethers.Wallet.fromMnemonic(mnemonic, path);
-        console.log(wallet.privateKey);
-        res.status(200).json({ success: true, message: '지갑 생성 완료', data: wallet });
-    }
-    catch (err) {
-        console.log(err);
-        res.status(500).json({ success: false, message: `지갑 생성 실패:${err}`, err: err });
-    }
-}));
-// router.get('/encrypt', async(req:Request, res:Response, next:NextFunction)=> {
-//     try{
-//        const encryptPromise= ether
-//        res.status(200).json({success:true, message:'지갑 생성 완료', data:wallet});
-//     } catch(err){
-//         console.log(err);
-//         res.status(500).json({success:false, message:`지갑 생성 실패:${err}`, err:err})
-//     }
-// });
 exports.default = router;
 //# sourceMappingURL=wallet.js.map
