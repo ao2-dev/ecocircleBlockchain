@@ -150,7 +150,7 @@ router.post('/create', async(req:Request, res:Response, next:NextFunction)=> {
             };
 
             fs.writeFile(`./db/keystores/${uuid}.json`, JSON.stringify(saving) ,(err)=> console.log(err));
-            res.status(200).json({success:true, message:'지갑 생성 완료', data:{wallet:saving}});
+            res.status(200).json({success:true, message:'지갑 생성 완료', data:saving});
           })
     } catch(err){
         console.log(err);

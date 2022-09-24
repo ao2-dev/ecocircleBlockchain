@@ -10,7 +10,7 @@ const options = {
         info: {
             title: 'Ecocircle Blockchain API',
             version: '1.0.0',
-            description: 'Ecocircle API for communicating samrt contract',
+            description: `${HOST}docs`,
         },
         host: HOST,
         basePath: '/',
