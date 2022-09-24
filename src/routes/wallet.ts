@@ -368,6 +368,25 @@ router.post('/accounts/add/origin',async(req:Request, res:Response, next:NextFun
 //       }
 //   });
   
+//지갑에서 주소 삭제
+router.delete('/accounts/delete/:address',async(req:Request, res:Response, next:NextFunction)=> {
+    const address=req.params['address'];
+    const wallet=req.body.wallet;
+    
+    try {
+       const d:WalletT = wallet as WalletT;
+       const renewdWallet:WalletT={
+           ...d,
+           addresses:d.addresses.filter(item=> item.address!==address)
+       }
+       res.status(200).json({success:true, message:'주소 삭제 성공', data:renewdWallet})
+    } catch(err){
+        res.status(500).json({success:false, message:`주소 삭제 실패:${err}`, data:null});
+    }
+});
+
+
+
 /**
    * @swagger
    * /wallet/balance/{address}:
