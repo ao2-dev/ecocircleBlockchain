@@ -1,0 +1,101 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "This is a sample server Petstore server.  You can find out more about     Swagger at [http://swagger.io](http://swagger.io) or on [irc.freenode.net, #swagger](http://swagger.io/irc/).      For this sample, you can use the api key `special-key` to test the authorization     filters.",
+        "version": "1.0.0",
+        "title": "EcoCircle Blockchain API",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "email": "dev@ao2.co.kr"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        }
+    },
+    "host": "localhost:1234",
+    "basePath": "/",
+    "tags": [
+        {
+            "name": "token",
+            "description": "토큰과 관련된 API입니다"
+        }
+    ],
+    "schemes": [
+        "http"
+    ],
+    "paths": {
+        "/token": {
+            "get": {
+                "tags": ["token"],
+                "summary": "토큰 인포",
+                "description": "심볼, 이름 등 토큰의 정보를 받습니다.",
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "405": {
+                        "description": "잘못된 호출입니다"
+                    },
+                    "500": {
+                        "description": "이상한 문제 발생"
+                    }
+                }
+            }
+        },
+        "/token/send": {
+            "post": {
+                "tags": ["token"],
+                "summary": "토큰 전송",
+                "description": "토큰을 전송합니다.",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "토큰전송할 주소, 보낼 토큰 양을 보내주세요",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/components/schema/sendToken"
+                        },
+                        "example": {
+                            "address": {
+                                "summary": "보낼 주소",
+                                "value": "0xabc...."
+                            },
+                            "amount": {
+                                "summary": "전송할 금액",
+                                "value": "100"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "405": {
+                        "description": "파라미터가 잘못되었습니다"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schema": {
+            "sendToken": {
+                "type": "object",
+                "properties": {
+                    "address": {
+                        "type": "string",
+                        "description": "보낼 주소"
+                    },
+                    "amount": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "보낼 금액"
+                    }
+                }
+            }
+        }
+    }
+}
