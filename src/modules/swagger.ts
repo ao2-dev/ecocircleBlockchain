@@ -1,5 +1,6 @@
 
 import swaggereJsdoc from 'swagger-jsdoc'
+import { HOST } from '../utils/constants';
 // const swaggerUi = require('swagger-ui-express');
 //const swaggereJsdoc = require('swagger-jsdoc');
 
@@ -7,11 +8,11 @@ const options = {
     definition: {
         openapi: "3.0.0",
         info: {
-            title: 'Test API',
+            title: 'Ecocircle Blockchain API',
             version: '1.0.0',
-            description: 'Test API with express',
+            description: 'Ecocircle API for communicating samrt contract',
         },
-        host: 'localhost:1234',
+        host: HOST,
         basePath: '/',
    
     },

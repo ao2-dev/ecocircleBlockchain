@@ -48,19 +48,16 @@ const onlyOwner=(req:Request, res:Response, next:NextFunction)=>{
    * @swagger
    * /token:
    *   get:
-   *     summary: 토큰 이름, 심볼 조회
+   *     summary: 토큰 이름, 심볼 조회 [T-1]
    *     tags:
    *      - Token
-   *     description: 토큰 이름, 심볼 조회
+   *     description: 토큰 이름, 심볼 조회 [T-1]
    *     responses:
    *       200:
    *         content:
    *           application/json:
    *             schema:
    *               $ref: '#/components/schemas/ResponseT'
-   *           text/plain:
-   *             schema:
-   *               type: string
    *             
    *         
    */
@@ -83,10 +80,10 @@ router.get('/', async (req:Request, res:Response, next:NextFunction)=>{
    * @swagger
    * /token/owner:
    *   get:
-   *     summary: 토큰 컨트랙트 배포 계정주소(owner) 조회
+   *     summary: 토큰 컨트랙트 배포 계정주소(owner) 조회 [T-2]
    *     tags:
    *      - Token
-   *     description: 토큰 컨트랙트 배포 계정주소(owner) 조회
+   *     description: 토큰 컨트랙트 배포 계정주소(owner) 조회 [T-2]
    *     responses:
    *       200:
    *         content:
@@ -113,7 +110,7 @@ router.get('/owner', onlyOwner,async (req:Request, res:Response, next:NextFuncti
    * @swagger
    * /token/owner/change:
    *   post:
-   *     summary: 토큰 컨트랙트 owner변경
+   *     summary: 토큰 컨트랙트 owner변경 [T-3]
    *     requestBody:
    *       description: 변경될 Owner계정을 보내주세요
    *       required: true
@@ -127,7 +124,7 @@ router.get('/owner', onlyOwner,async (req:Request, res:Response, next:NextFuncti
    *         
    *     tags:
    *      - Token
-   *     description: 토큰 컨트랙트 owner변경
+   *     description: 토큰 컨트랙트 owner변경 [T-3]
    *     responses:
    *       200:
    *         content:
@@ -160,7 +157,7 @@ router.post('/owner/change',onlyOwner, async (req:Request, res:Response, next:Ne
    * @swagger
    * /token/mint:
    *   post:
-   *     summary: 토큰 추가 발행
+   *     summary: 토큰 추가 발행 [T-4]
    *     parameters:
    *       - in: header
    *         name: OWNER
@@ -180,7 +177,7 @@ router.post('/owner/change',onlyOwner, async (req:Request, res:Response, next:Ne
    *                 type: integer
    *     tags:
    *      - Token
-   *     description: 토큰 추가 발행
+   *     description: 토큰 추가 발행 [T-4]
    *     responses:
    *       200:
    *         content:
@@ -213,7 +210,7 @@ router.post('/mint',onlyOwner,async(req:Request, res:Response, next:NextFunction
    * @swagger
    * /token/burn:
    *   post:   
-   *     summary: 토큰 소각
+   *     summary: 토큰 소각 [T-5]
    *     parameters:
    *       - in: header
    *         name: OWNER
@@ -233,7 +230,7 @@ router.post('/mint',onlyOwner,async(req:Request, res:Response, next:NextFunction
    *                 type: integer     
    *     tags:
    *      - Token
-   *     description: 토큰 소각
+   *     description: 토큰 소각 [T-5]
    *     responses:
    *       200:
    *         content:
@@ -267,7 +264,7 @@ router.post('/burn',onlyOwner,async(req:Request, res:Response, next:NextFunction
    * @swagger
    * /token/totalsupply:
    *   get:
-   *     summary: 토큰 현재까지의 총 발행량 조회
+   *     summary: 토큰 현재까지의 총 발행량 조회 [T-6]
    *     parameters:
    *       - in: header
    *         name: OWNER
@@ -277,7 +274,7 @@ router.post('/burn',onlyOwner,async(req:Request, res:Response, next:NextFunction
    *         required: true
    *     tags:
    *      - Token
-   *     description: 토큰 현재까지의 총 발행량 조회
+   *     description: 토큰 현재까지의 총 발행량 조회 [T-6]
    *     responses:
    *       200:
    *         content:
@@ -308,7 +305,7 @@ router.get('/totalsupply',onlyOwner, async(req:Request, res:Response, next:NextF
    * @swagger
    * /token/balance/{address}:
    *   get:
-   *     summary: 토큰 잔액(밸런스)조회
+   *     summary: 토큰 잔액(밸런스)조회 [T-7]
    *     parameters:
    *       - in: path
    *         name: address
@@ -319,7 +316,7 @@ router.get('/totalsupply',onlyOwner, async(req:Request, res:Response, next:NextF
    *         description: 잔액 조회하고자 하는 주소
    *     tags:
    *      - Token
-   *     description: 토큰 잔액(밸런스)조회
+   *     description: 토큰 잔액(밸런스)조회 [T-7]
    *     responses:
    *       200:
    *         content:
@@ -346,7 +343,7 @@ router.get('/balance/:address', async(req:Request, res:Response, next:NextFuncti
    * @swagger
    * /token/transfer/owner:
    *   post:   
-   *     summary: owner로부터 토큰 전송
+   *     summary: owner로부터 토큰 전송 [T-8]
    *     parameters:
    *       - in: header
    *         name: OWNER
@@ -370,7 +367,7 @@ router.get('/balance/:address', async(req:Request, res:Response, next:NextFuncti
    *                 description: 토큰 양
    *     tags:
    *      - Token
-   *     description: owner로부터 토큰 전송
+   *     description: owner로부터 토큰 전송 [T-8]
    *     responses:
    *       200:
    *         content:
@@ -406,7 +403,7 @@ router.post('/transfer/owner',onlyOwner,async(req:Request, res:Response, next:Ne
    * @swagger
    * /token/transfer:
    *   post:   
-   *     summary: 일반 토큰 전송
+   *     summary: 일반 토큰 전송 [T-9]
    *     requestBody:
    *       description: 토큰을 보낼 주소와 토큰 양을 보내주세요.
    *       required: true
@@ -426,7 +423,7 @@ router.post('/transfer/owner',onlyOwner,async(req:Request, res:Response, next:Ne
    *                 description: 토큰 양
    *     tags:
    *      - Token
-   *     description: 일반 토큰 전송
+   *     description: 일반 토큰 전송 [T-9]
    *     responses:
    *       200:
    *         content:

@@ -47,8 +47,80 @@ export const needUserUUID=(req:Request, res:Response, next:NextFunction)=>{
     res.status(400).json({success:false, message: `uuid값 없음` ,  data:null});
   }}
 
+
+  /**
+   * @swagger
+   * tags:
+   *   name: Wallet
+   *   description: 지갑 관련 API
+   */
+
+
+/**
+   * @swagger
+   * /wallet:
+   *   get:
+   *     summary: 월렛 정보 조회 [W-1]
+   *     parameters:
+   *       - in: header
+   *         name: UUID
+   *         schema:
+   *           type: string
+   *         required: true
+   *     tags:
+   *      - Wallet
+   *     description: 월렛 정보 조회 [W-1]
+   *     responses:
+   *       200:
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ResponseT'
+   *             
+   *         
+   */
+
+router.get('/', needUserUUID, async(req:Request, res:Response, next:NextFunction)=> {
+    try {
+        fs.readFile(`./db/keystores/${req.uuid}.json`,'utf8',async(err, data)=>{
+            const d: WalletT = JSON.parse(data);
+            res.status(200).json({success:true, message:'월렛정보 조회 성공', data:{walletInfo:d}})
+    
+        });
+    }catch(err){
+        res.status(500).json({success:false, message:`월렛정보 조회 실패:${err}`, data:null});
+    }
+});
+
   // 신규 지갑 생성 : 니모닉은 지갑을 구분하는 문구임. privatekey만 있으면 account는 가져올 수 있음 ==> 프론트에서 secure storage 저장
 //생성시 provider 없음
+/**
+   * @swagger
+   * /wallet/create:
+   *   post:   
+   *     summary: 최초 지갑 생성 하기 [W-2]
+   *     requestBody:
+   *       description: 비밀번호 필요
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               password:
+   *                 type: string     
+   *     tags:
+   *      - Wallet
+   *     description: 최초 지갑 생성 하기 [W-2]
+   *     responses:
+   *       200:
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ResponseT'
+   *             
+   *         
+   */
 router.post('/create', async(req:Request, res:Response, next:NextFunction)=> {
     const password=req.body.password;
     try {
@@ -65,8 +137,6 @@ router.post('/create', async(req:Request, res:Response, next:NextFunction)=> {
             console.log(`==-=====KEYSTORE=====`)
             console.log(keystore);
             console.log('==================');
-       
-       
        
             const walletMnemonic=wallet.mnemonic; // 있음 
 
@@ -95,7 +165,29 @@ router.post('/create', async(req:Request, res:Response, next:NextFunction)=> {
 
 
 
-//유저 지갑 계좌 모두 조회
+/**
+   * @swagger
+   * /wallet/accounts:
+   *   get:
+   *     summary: 지갑 계좌주소리스트 조회 [W-3]
+   *     parameters:
+   *       - in: header
+   *         name: UUID
+   *         schema:
+   *           type: string
+   *         required: true
+   *     tags:
+   *      - Wallet
+   *     description: 지갑 계좌주소리스트 조회 [W-3]
+   *     responses:
+   *       200:
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ResponseT'
+   *             
+   *         
+   */
 router.get('/accounts', needUserUUID, async(req:Request, res:Response, next:NextFunction)=> {
     try {
         fs.readFile(`./db/keystores/${req.uuid}.json`,'utf8',async(err, data)=>{
@@ -108,7 +200,29 @@ router.get('/accounts', needUserUUID, async(req:Request, res:Response, next:Next
     }
 });
 
-
+/**
+   * @swagger
+   * /wallet/accounts/add/new:
+   *   get:
+   *     summary: 새로운 주소 만들고 지갑에 추가하기 [W-4]
+   *     parameters:
+   *       - in: header
+   *         name: UUID
+   *         schema:
+   *           type: string
+   *         required: true
+   *     tags:
+   *      - Wallet
+   *     description: 새로운 주소 만들고 지갑에 추가하기 [W-4]
+   *     responses:
+   *       200:
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ResponseT'
+   *             
+   *         
+   */
 //랜덤 계좌 추가
 router.get('/accounts/add/new',needUserUUID,async(req:Request, res:Response, next:NextFunction)=> {
     try {
@@ -134,7 +248,41 @@ router.get('/accounts/add/new',needUserUUID,async(req:Request, res:Response, nex
 
 
 // 기존 다른 곳에 보유중인 계좌 추가
-router.post('/accounts/add/from',needUserUUID,async(req:Request, res:Response, next:NextFunction)=> {
+/**
+   * @swagger
+   * /wallet/accounts/add/origin:
+   *   post:
+   *     summary: 다른곳에 보유한 내 주소 가져와서 지갑에 추가하기 [W-5]
+   *     parameters:
+   *       - in: header
+   *         name: UUID
+   *         schema:
+   *           type: string
+   *         required: true
+   *     requestBody:
+   *       description: 추가할 주소의 비공개키(privateKey)를 보내주세요
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               privateKey:
+   *                 type: string   
+   *     tags:
+   *      - Wallet
+   *     description: 다른곳에 보유한 내 주소 가져와서 지갑에 추가하기 [W-5]
+   *     responses:
+   *       200:
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ResponseT'
+   *             
+   *         
+   */
+//랜덤 계좌 추가
+router.post('/accounts/add/origin',needUserUUID,async(req:Request, res:Response, next:NextFunction)=> {
   const privateKey=req.body.privateKey;
     
     try {
@@ -158,8 +306,31 @@ router.post('/accounts/add/from',needUserUUID,async(req:Request, res:Response, n
     }
 });
 
-
-//이더리움 잔액조회
+/**
+   * @swagger
+   * /wallet/balance/{address}:
+   *   get:
+   *     summary: 이더리움 잔액 조회 [W-6]
+   *     parameters:
+   *       - in: path
+   *         name: address
+   *         schema:
+   *           type: string
+   *           foramt: 0x..
+   *         required: true
+   *         description: 잔액 조회하고자 하는 주소
+   *     tags:
+   *      - Wallet
+   *     description: 이더리움 잔액 조회 [W-6]
+   *     responses:
+   *       200:
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ResponseT'
+   *             
+   *         
+   */
 router.get('/balance/:address',async(req:Request, res:Response, next:NextFunction)=>{
 
     const address=req.params['address'];
@@ -174,6 +345,8 @@ router.get('/balance/:address',async(req:Request, res:Response, next:NextFunctio
             res.status(500).json({success:false, message: `이더리움 잔액조회 실패:${err}` ,  data:null});
             }
   });
+
+
 
 router.post('/decrypt',needUserUUID,async(req:Request, res:Response, next:NextFunction)=>{
     const uuid=req.get('UUID');
