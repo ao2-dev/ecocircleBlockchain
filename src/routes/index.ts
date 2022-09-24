@@ -4,7 +4,7 @@ import tokenRouter from './token';
 import wallterRouter from './wallet';
 import * as dotenv from 'dotenv'
 import { ethers } from 'ethers';
-import swaggerJSDoc from 'swagger-jsdoc';
+
 dotenv.config()
 //const web3 = new Web3(new Web3.providers.HttpProvider(GANACHE_RPC_SERVER));
 //const web3= new Web3(GANACHE_RPC_SERVER);
