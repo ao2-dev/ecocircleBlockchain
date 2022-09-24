@@ -207,9 +207,8 @@ router.post('/update',needUserUUID,async(req:Request, res:Response, next:NextFun
   //[x]  아직 보류 !!~!// 신규 지갑 생성 : 니모닉은 지갑을 구분하는 문구임. privatekey만 있으면 account는 가져올 수 있음 ==> 프론트에서 secure storage 저장
 //생성시 provider 없음
 router.post('/create/web3/new', async(req:Request, res:Response, next:NextFunction)=> {
-    //const password=req.body.password;
     try {
-             
+
           const newWallet=web3.eth.accounts.wallet.create(1);
 
          
@@ -217,6 +216,7 @@ router.post('/create/web3/new', async(req:Request, res:Response, next:NextFuncti
           console.log(`==-=====ADDRESS=====`)
            console.log(newAddress);
            console.log('==================')
+
           newWallet.add({
             privateKey:newAddress.privateKey,
             address:newAddress.address,
@@ -224,24 +224,10 @@ router.post('/create/web3/new', async(req:Request, res:Response, next:NextFuncti
 
           console.log(newWallet);
           console.log(newWallet["0"]);
-        //   wallet.add({
-        //         privateKey:`${wallet.privateKey}`,
-        //         address: `${wallet.address}`,
-        //     });
+     
         const keystore=newWallet.encrypt("12345");
         console.log(keystore);
-        //  const uuid=v5(`${wallet.mnemonic.phrase}`,'1a30bae5-e589-47b1-9e77-a7da2cdbc2b8');
-        //  const saving:UserWalletInfoT={
-        //      keystore:keystore,
-        //      addresses:[
-        //          {address:defaultAddress,
-        //          privateKey:privateKey,
-        //          }
-        //      ],
-        //      uuid:uuid,
-        //      mnemonic:walletMnemonic.phrase,
-        //  };
-            //fs.writeFile(`./db/keystores/${uuid}.json`, JSON.stringify(saving) ,(err)=> console.log(err));
+     
             res.status(200).json({success:true, message:'지갑 생성 완료', data:null});
        
     } catch(err){

@@ -341,44 +341,6 @@ router.get('/balance/:address', async(req:Request, res:Response, next:NextFuncti
 });
 
 
-// router.post('/transfer/:from',needUserUUID,async(req:Request, res:Response, next:NextFunction)=>{
-//   const uuid=req.uuid;
-//   const from=req.params['from'];
-//  const to=req.body.to; 
-//   const amount=req.body.amount;
-//   const password=req.body.password;
-//   // const signer = new ethers.Wallet(OWNER_PRIVATE_KEY!, provider);
-//   // const scWithSigner=sc.connect(signer);
-//   try{
-//     fs.readFile(`./db/keystores/${req.uuid}.json`,'utf8',async(err, data)=>{
-//       if(data){
-//         const keystore=await lightwallet.keystore.deserialize(data);
-//         await keystore.keyFromPassword(password,async(err:any, pwDerivedKey:any)=>{
-//           if(err){       
-//             console.log("--errorororo--")
-//          res.status(500).json({success:false, message:`프라이빗 정보조회 실패:${err}`, data: null});
-//          }
-//          const key=keystore.exportPrivateKey(from.toString(), pwDerivedKey)
-//          const privateKey='0x'+key;
-
-
-//           const fromSigner = new ethers.Wallet(privateKey, provider);
-//            const contract=sc.connect(fromSigner);
-//          const tx=await contract.transfer(to, amount);
-//          console.log(`Transfer in hash: ${tx.hash}`);
-//         res.status(200).json({success:false, message:'토큰 전송 성공', data:{
-//         to: to, amount:amount,
-//         }});
-//         })
-//       }
-//     });
-
-//   }catch(err){
-//     console.log(err);
-//     res.status(500).json({success:false, message:`토큰 전송 실패:${err}`, data:null});
-//   }
-// });
-
 //owner로 부터 토큰 전송
 /**
    * @swagger
