@@ -19,7 +19,6 @@ interface Web3AddressT{
 
 
 interface WalletT {
-    wallet: object;
     keystore: string;
     addresses: Web3AddressT[];
     uuid: string;
@@ -46,6 +45,18 @@ export const needUserUUID=(req:Request, res:Response, next:NextFunction)=>{
   }else {
     res.status(400).json({success:false, message: `uuid값 없음` ,  data:null});
   }}
+
+
+//   export const needWallet=(req:Request, res:Response, next:NextFunction)=>{
+//     //header에서 'UUID' 값을 주어야함.
+//   const wallet=req.get('WALLET');
+//   if(wallet){
+//     req.uuid=wallet;
+//     console.log(wallet);
+//     next();
+//   }else {
+//     res.status(400).json({success:false, message: `uuid값 없음` ,  data:null});
+//   }}
 
 
   /**
@@ -142,7 +153,6 @@ router.post('/create', async(req:Request, res:Response, next:NextFunction)=> {
 
             const uuid=v5(`${wallet.mnemonic.phrase}`,'1a30bae5-e589-47b1-9e77-a7da2cdbc2b8');
             const saving:WalletT={
-                wallet:wallet,
                 keystore:keystore,
                 addresses:[address],
                 uuid:uuid,
@@ -224,7 +234,7 @@ router.get('/accounts', needUserUUID, async(req:Request, res:Response, next:Next
    *         
    */
 //랜덤 계좌 추가
-router.get('/accounts/add/new',needUserUUID,async(req:Request, res:Response, next:NextFunction)=> {
+router.get('/accounts/add/new2',needUserUUID,async(req:Request, res:Response, next:NextFunction)=> {
     try {
        const newAccount=web3.eth.accounts.create();
        console.log(newAccount);
@@ -241,6 +251,28 @@ router.get('/accounts/add/new',needUserUUID,async(req:Request, res:Response, nex
            res.status(200).json({success:true, message:'추가계좌개설 성공', data:{renewdWallet}})
    
        });
+    } catch(err){
+        res.status(500).json({success:false, message:`추가계좌개설 실패:${err}`, data:null});
+    }
+});
+
+
+//uuid 없이 . 계좌개성하기 
+router.post('/accounts/add/new',async(req:Request, res:Response, next:NextFunction)=> {
+    const wallet=req.body.wallet;
+    try {
+       const newAccount=web3.eth.accounts.create();
+       console.log(newAccount);
+       const d:WalletT = wallet as WalletT;
+       const renewedWallet:WalletT={
+        ...d,
+        addresses:[
+            ...d.addresses,
+            newAccount,
+        ]
+    }
+    res.status(200).json({success:true, message:'추가계좌개설 성공', data:renewedWallet})
+
     } catch(err){
         res.status(500).json({success:false, message:`추가계좌개설 실패:${err}`, data:null});
     }
