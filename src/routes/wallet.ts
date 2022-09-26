@@ -15,6 +15,7 @@ interface Web3AddressT{
     signTransaction: (tx:any)=>void;
     sign: (data:any)=>void;
     encrypt: (password:string)=>void;
+    name?: string;
 }
 
 
@@ -35,28 +36,6 @@ const provider= new ethers.providers.InfuraProvider("ropsten",
 INFURA_API_KEY
 );
 
-export const needUserUUID=(req:Request, res:Response, next:NextFunction)=>{
-    //header에서 'UUID' 값을 주어야함.
-  const uuid=req.get('UUID');
-  if(uuid){
-    req.uuid=uuid;
-    console.log(uuid);
-    next();
-  }else {
-    res.status(400).json({success:false, message: `uuid값 없음` ,  data:null});
-  }}
-
-
-//   export const needWallet=(req:Request, res:Response, next:NextFunction)=>{
-//     //header에서 'UUID' 값을 주어야함.
-//   const wallet=req.get('WALLET');
-//   if(wallet){
-//     req.uuid=wallet;
-//     console.log(wallet);
-//     next();
-//   }else {
-//     res.status(400).json({success:false, message: `uuid값 없음` ,  data:null});
-//   }}
 
 
   /**
@@ -67,44 +46,18 @@ export const needUserUUID=(req:Request, res:Response, next:NextFunction)=>{
    */
 
 
-/**
-   * @swagger
-   * /wallet:
-   *   get:
-   *     summary: 월렛 정보 조회 [W-1]  [사용 x]
-   *     parameters:
-   *       - in: header
-   *         name: UUID
-   *         schema:
-   *           type: string
-   *         required: true
-   *     tags:
-   *      - Wallet
-   *     description: 월렛 정보 조회 [W-1] [사용 x]
-   *     responses:
-   *       200:
-   *         description: data 는 
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: '#/components/schemas/ResponseT'
-
-   *             
-   *         
-   */
-
-router.get('/', async(req:Request, res:Response, next:NextFunction)=> {
+// router.get('/', async(req:Request, res:Response, next:NextFunction)=> {
     
-    try {
-        fs.readFile(`./db/keystores/${req.uuid}.json`,'utf8',async(err, data)=>{
-            const d: WalletT = JSON.parse(data);
-            res.status(200).json({success:true, message:'월렛정보 조회 성공', data:{walletInfo:d}})
+//     try {
+//         fs.readFile(`./db/keystores/${req.uuid}.json`,'utf8',async(err, data)=>{
+//             const d: WalletT = JSON.parse(data);
+//             res.status(200).json({success:true, message:'월렛정보 조회 성공', data:{walletInfo:d}})
     
-        });
-    }catch(err){
-        res.status(500).json({success:false, message:`월렛정보 조회 실패:${err}`, data:null});
-    }
-});
+//         });
+//     }catch(err){
+//         res.status(500).json({success:false, message:`월렛정보 조회 실패:${err}`, data:null});
+//     }
+// });
 
   // 신규 지갑 생성 : 니모닉은 지갑을 구분하는 문구임. privatekey만 있으면 account는 가져올 수 있음 ==> 프론트에서 secure storage 저장
 //생성시 provider 없음
@@ -147,13 +100,6 @@ router.post('/create', async(req:Request, res:Response, next:NextFunction)=> {
           }).then((keystore)=>{
             
             const address:Web3AddressT =web3.eth.accounts.privateKeyToAccount(`${wallet.privateKey}`);
-         
-           console.log(`==-=====ADDRESS=====`)
-            console.log(address);
-            console.log('==================');
-            console.log(`==-=====KEYSTORE=====`)
-            console.log(keystore);
-            console.log('==================');
        
             const walletMnemonic=wallet.mnemonic; // 있음 
 
@@ -164,8 +110,6 @@ router.post('/create', async(req:Request, res:Response, next:NextFunction)=> {
                 uuid:uuid,
                 mnemonic:walletMnemonic.phrase,
             };
-
-            fs.writeFile(`./db/keystores/${uuid}.json`, JSON.stringify(saving) ,(err)=> console.log(err));
             res.status(200).json({success:true, message:'지갑 생성 완료', data:saving});
           })
     } catch(err){
@@ -204,43 +148,21 @@ router.post('/create', async(req:Request, res:Response, next:NextFunction)=> {
    *             
    *         
    */
-router.get('/accounts', needUserUUID, async(req:Request, res:Response, next:NextFunction)=> {
+
+router.get('/accounts', async(req:Request, res:Response, next:NextFunction)=> {  
+    const wallet=req.body.wallet;
     try {
-        fs.readFile(`./db/keystores/${req.uuid}.json`,'utf8',async(err, data)=>{
-            const d: WalletT = JSON.parse(data);
+        
+            const d:WalletT = wallet as WalletT;
             res.status(200).json({success:true, message:'주소 리스트 조회 성공', data:d.addresses})
     
-        });
+   
     }catch(err){
         res.status(500).json({success:false, message:`주소 리스트 조회 실패:${err}`, data:null});
     }
 });
 
 
-// router.get('/accounts/add/new2',needUserUUID,async(req:Request, res:Response, next:NextFunction)=> {
-//     try {
-//        const newAccount=web3.eth.accounts.create();
-//        console.log(newAccount);
-//        fs.readFile(`./db/keystores/${req.uuid}.json`,'utf8',async(err, data)=>{
-//            const d:WalletT = JSON.parse(data);
-//            const renewdWallet:WalletT={
-//                ...d,
-//                addresses:[
-//                    ...d.addresses,
-//                    newAccount,
-//                ]
-//            }
-//            fs.writeFile(`./db/keystores/${req.uuid}.json`, JSON.stringify(renewdWallet) ,(err)=> console.log(err));
-//            res.status(200).json({success:true, message:'추가계좌개설 성공', data:{renewdWallet}})
-   
-//        });
-//     } catch(err){
-//         res.status(500).json({success:false, message:`추가계좌개설 실패:${err}`, data:null});
-//     }
-// });
-
-
-//uuid 없이 . 계좌개성하기 
 /**
    * @swagger
    * /wallet/accounts/add/new:
@@ -265,7 +187,9 @@ router.get('/accounts', needUserUUID, async(req:Request, res:Response, next:Next
    *           application/json:
    *             schema:
    *               $ref: '#/components/schemas/ResponseT'
-   *             
+   *               properties:
+   *                 data:
+   *                   $ref: '#/components/schemas/WalletT'       
    *         
    */
 //랜덤 계좌 추가
@@ -275,8 +199,28 @@ router.post('/accounts/add/new',async(req:Request, res:Response, next:NextFuncti
        const newAccount=web3.eth.accounts.create();
        console.log(newAccount);
        const d:WalletT = wallet as WalletT;
+      
+       const originKS=JSON.parse(d.keystore);
+ 
+       const originAddress=originKS.address;//keystore에 저장되어있는 주소
+       let addrList:string[]=[];
+  
+       if(typeof originAddress ===typeof []){
+        //주소 여러개 있을때
+        addrList=originAddress;
+       }else {
+        //1개만 있을 때
+        addrList=[originAddress];
+       }
+
+       const newKS={
+        ...originKS,
+        address: addrList.push(newAccount.address),
+       }
+
        const renewedWallet:WalletT={
         ...d,
+        keystore:JSON.stringify(newKS),
         addresses:[
             ...d.addresses,
             newAccount,
@@ -290,7 +234,18 @@ router.post('/accounts/add/new',async(req:Request, res:Response, next:NextFuncti
 });
 
 
-// 기존 다른 곳에 보유중인 계좌 추가
+
+
+// router.post('/keystore', async(req:Request, res:Response, next:NextFunction)=> {
+//     const wallet=req.body.wallet; 
+//     const d:WalletT = wallet as WalletT;
+//     const originKS=JSON.parse(d.keystore);
+//     console.log(originKS);
+//     res.status(200).json({success:true, message:'추가계좌개설 성공', data:originKS})
+// })
+
+
+//  다른 곳에 보유중인 계좌 추가
 /**
    * @swagger
    * /wallet/accounts/add/origin:
@@ -317,6 +272,9 @@ router.post('/accounts/add/new',async(req:Request, res:Response, next:NextFuncti
    *           application/json:
    *             schema:
    *               $ref: '#/components/schemas/ResponseT'
+   *               properties:
+   *                 data:
+   *                   $ref: '#/components/schemas/WalletT'   
    *             
    *         
    */
@@ -343,31 +301,44 @@ router.post('/accounts/add/origin',async(req:Request, res:Response, next:NextFun
     }
 });
 
-
-// router.post('/accounts/add/origin2',needUserUUID,async(req:Request, res:Response, next:NextFunction)=> {
-//     const privateKey=req.body.privateKey;
-      
-//       try {
-//           const newAccount:Web3AddressT =web3.eth.accounts.privateKeyToAccount(privateKey);
-//          console.log(newAccount);
-//          fs.readFile(`./db/keystores/${req.uuid}.json`,'utf8',async(err, data)=>{
-//              const d:WalletT = JSON.parse(data);
-//              const renewdWallet:WalletT={
-//                  ...d,
-//                  addresses:[
-//                      ...d.addresses,
-//                      newAccount,
-//                  ]
-//              }
-//              fs.writeFile(`./db/keystores/${req.uuid}.json`, JSON.stringify(renewdWallet) ,(err)=> console.log(err));
-//              res.status(200).json({success:true, message:'주소 추가 성공', data:{renewdWallet}})
-     
-//          });
-//       } catch(err){
-//           res.status(500).json({success:false, message:`주소 추가 실패:${err}`, data:null});
-//       }
-//   });
-  
+/**
+   * @swagger
+   * /wallet/accounts/add/origin:
+   *   post:
+   *     summary: 지갑에서 주소 삭제 [W-6]
+   *     parameters:
+   *       - in: path
+   *         name: address
+   *         schema:
+   *           type: string
+   *           foramt: 0x..
+   *         required: true
+   *         description: 삭제 할 주소(0x...)
+   *     requestBody:
+   *       description: 월렛정보 보내주세요.
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               wallet:
+   *                 $ref: '#/components/schemas/WalletT' 
+   *     tags:
+   *      - Wallet
+   *     description: 지갑에서 주소 삭제 [W-6]
+   *     responses:
+   *       200:
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ResponseT'
+   *               properties:
+   *                 data:
+   *                   $ref: '#/components/schemas/WalletT'   
+   *             
+   *         
+   */  
 //지갑에서 주소 삭제
 router.delete('/accounts/delete/:address',async(req:Request, res:Response, next:NextFunction)=> {
     const address=req.params['address'];
@@ -391,7 +362,7 @@ router.delete('/accounts/delete/:address',async(req:Request, res:Response, next:
    * @swagger
    * /wallet/balance/{address}:
    *   get:
-   *     summary: 이더리움 잔액 조회 [W-6]
+   *     summary: 이더리움 잔액 조회 [W-7]
    *     parameters:
    *       - in: path
    *         name: address
@@ -402,7 +373,7 @@ router.delete('/accounts/delete/:address',async(req:Request, res:Response, next:
    *         description: 잔액 조회하고자 하는 주소
    *     tags:
    *      - Wallet
-   *     description: 이더리움 잔액 조회 [W-6]
+   *     description: 이더리움 잔액 조회 [W-7]
    *     responses:
    *       200:
    *         content:
@@ -419,7 +390,7 @@ router.get('/balance/:address',async(req:Request, res:Response, next:NextFunctio
   
             const balance=await provider.getBalance(address);
             console.log(balance);
-            res.status(200).json({success:true, message: `이더리움 잔액조회 성공` ,  data:{balance: balance}});   //balance 는 bigNumber 이고, bigNumber  는  .toString() 해주어야함.
+            res.status(200).json({success:true, message: `이더리움 잔액조회 성공` ,  data:`${balance}`});   //balance 는 bigNumber 이고, bigNumber  는  .toString() 해주어야함.
           
             }catch(err){
             console.log(err);
@@ -429,31 +400,138 @@ router.get('/balance/:address',async(req:Request, res:Response, next:NextFunctio
 
 
 
-router.post('/decrypt',needUserUUID,async(req:Request, res:Response, next:NextFunction)=>{
-    const uuid=req.get('UUID');
-    const password=req.body.password;
+/**
+   * @swagger
+   * /wallet/restore:
+   *   post:
+   *     summary: 니모닉으로 내 지갑정보 복구하기(단, 첫번째 주소만 불러와짐) [W-8]
+   *     requestBody:
+   *       description: 월렛 정보 보내주세요.
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               wallet:
+   *                 $ref: '#/components/schemas/WalletT' 
+   *     tags:
+   *      - Wallet
+   *     description: 니모닉으로 내 지갑정보 복구하기(단, 첫번째 주소만 불러와짐) [W-8]
+   *     responses:
+   *       200:
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ResponseT'
+   *               properties:
+   *                 data:
+   *                   $ref: '#/components/schemas/WalletT'     
+   *         
+   */
+  //동일한 니모닉으로 다시 지갑 생성
+router.post('/restore', async(req:Request, res:Response, next:NextFunction)=>{
+   const mnemonic=req.body.mnemonic;
+   try{
+    const wallet= await Wallet.fromMnemonic(mnemonic);
+    console.log(wallet);
 
-    try {
-        fs.readFile(`./db/keystores/${req.uuid}.json`,'utf8',async(err, data)=>{
-            const d:WalletT = JSON.parse(data);
-            res.status(200).json({success:true, message:'주소 리스트 조회 성공', data:d.addresses})
-    
-        });
-    }catch(err){
-        res.status(500).json({success:false, message:`주소 리스트 조회 실패:${err}`, data:null});
-    }
+    console.log(wallet.getAddress());
+    console.log(wallet.mnemonic.phrase);
+   const encryptPromise=wallet.encrypt("12345",(percent:any)=>{
+    console.log("Encrypting: " + parseInt(percent)*100 + "% complete");
+   });
+  
+   encryptPromise.then((keystore)=>{
+    const address:Web3AddressT =web3.eth.accounts.privateKeyToAccount(`${wallet.privateKey}`);
+     const walletMnemonic=wallet.mnemonic; // 있음 
+     const uuid=v5(`${wallet.mnemonic.phrase}`,'1a30bae5-e589-47b1-9e77-a7da2cdbc2b8');
+     const saving:WalletT={
+         keystore:keystore,
+         addresses:[address],
+         uuid:uuid,
+         mnemonic:walletMnemonic.phrase,
+     };
+     res.status(200).json({success:true, message: `이더리움 잔액조회 성공` ,  data:saving}); 
+    //console.log(json.)
+})
+   
+   } catch(err){
+    console.log(err);
+    res.status(500).json({success:false, message: `지갑복구 실패:${err}` ,  data:null});
+   }
 });
 
 
+/**
+   * @swagger
+   * /wallet/accounts/name/{address}:
+   *   patch:
+   *     summary: 주소에 대한 이름 생성 및 변경 [W-9]
+   *     parameters:
+   *       - in: path
+   *         name: address
+   *         schema:
+   *           type: string
+   *           foramt: 0x..
+   *         required: true
+   *         description: 잔액 조회하고자 하는 주소
+   *     requestBody:
+   *       description: 월렛 정보 보내주세요.
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               wallet:
+   *                 $ref: '#/components/schemas/WalletT' 
+   *     tags:
+   *      - Wallet
+   *     description: 주소에 대한 이름 생성 및 변경 [W-9]
+   *     responses:
+   *       200:
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ResponseT'
+   *               properties:
+   *                 data:
+   *                   $ref: '#/components/schemas/WalletT'
+   *             
+   *         
+   */
 
-router.post('/update',needUserUUID,async(req:Request, res:Response, next:NextFunction)=> {
-     try {
-        fs.readFile(`./db/keystores/${req.uuid}.json`,'utf8',async(err, data)=>{
+//주소에 대한 이름 생성 및 변경
+router.patch('/accounts/name/:address',async(req:Request, res:Response, next:NextFunction)=>{
+    const name=req.body.name;
+    const address:string=req.params['address'];
+    const wallet=req.body.wallet;
+    try {
 
-        });
-     }catch(err){
+        const d:WalletT = wallet as WalletT;
+        const addrList=d.addresses;
+        const changedAddr:Web3AddressT=d.addresses.filter(item=> item.address===address)[0];
+        const changedAddrIndex=d.addresses.indexOf(changedAddr);
+        delete addrList[changedAddrIndex];
 
-     }
+        const newAddr:Web3AddressT={
+            ...changedAddr,
+            name: name,
+        };
+
+        addrList.splice(changedAddrIndex,1,newAddr);
+
+        const renewedWallet:WalletT={
+            ...d,
+            addresses:addrList,
+        }
+        res.status(200).json({success:true, message: `주소에 대한 이름 생성 및 변경 성공` ,  data:renewedWallet}); 
+
+    }catch(err){
+        console.log(err);
+        res.status(500).json({success:false, message: `주소에 대한 이름 생성 및 변경 실패:${err}` ,  data:null});
+    }
 });
 
 

@@ -5,6 +5,8 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract Token is ERC20, Ownable {
+    event MintOrBurn(address indexed from, address indexed to, uint256 amount);
+
     constructor(
         uint256 initialSupply,
         string memory _name,
@@ -27,5 +29,13 @@ contract Token is ERC20, Ownable {
 
     function test() public view returns (address) {
         return _msgSender();
+    }
+
+    function _afterTokenTransfer(
+        address from,
+        address to,
+        uint256 amount
+    ) internal virtual override {
+        emit MintOrBurn(from, to, amount);
     }
 }

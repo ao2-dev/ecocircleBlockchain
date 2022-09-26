@@ -36,6 +36,8 @@ router.use('/wallet', wallterRouter);
  *        data:
  *          anyOf:
  *          - type: object
+ *          - type: integer
+ *          - type: string
  *          nullable: true
  *    WalletT:
  *      description: 지갑 정보가 담길 테이블(타입) 입니다.
@@ -60,10 +62,31 @@ router.use('/wallet', wallterRouter);
  *        address: 
  *          type: string
  *        privateKey:
+ *          type: string    
+ *    EventT:
+ *      description: 트랜잭션 이벤트 타입
+ *      type: object
+ *      properties:
+ *        blockNumber: 
+ *          type: integer
+ *        blockHash:
  *          type: string
- *      
- *    
- *           
+ *        transactionHash:
+ *          type: string
+ *        idx: 
+ *          type: integer
+ *        args:
+ *          $ref: '#/components/schemas/TransferArgsT'
+ *    TransferArgsT:
+ *      description: (토큰 혹은 이더리움) 송금 이벤트(로그) 타입
+ *      type: object
+ *      properties:   
+ *        from:  
+ *          type: string
+ *        to:
+ *          type: string
+ *        amount:
+ *          type: interfer
  *    Dog:
  *      type: object
  *      properties:
@@ -100,19 +123,6 @@ router.use('/wallet', wallterRouter);
    */
 router.get('/', (req:Request, res:Response, next:NextFunction)=> {
     res.status(200).json({success:true, message:'인덱스', data:'환영합니다'})
-})
-
-
-/**
- * @swagger
- * /test:
- *  get:
- *   tags:
- *    - Index
- *      
- */
-router.get('/test', (req:Request, res:Response, next:NextFunction)=> {
-    res.status(200).json({success:true, message:'env 테스트', data:TEST})
 })
 
 
