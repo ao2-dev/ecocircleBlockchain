@@ -125,6 +125,7 @@ router.post('/create', async(req:Request, res:Response, next:NextFunction)=> {
 
 
 
+
 /**
    * @swagger
    * /wallet/accounts:
@@ -236,13 +237,13 @@ router.post('/accounts/add/new',async(req:Request, res:Response, next:NextFuncti
 
 
 
-// router.post('/keystore', async(req:Request, res:Response, next:NextFunction)=> {
-//     const wallet=req.body.wallet; 
-//     const d:WalletT = wallet as WalletT;
-//     const originKS=JSON.parse(d.keystore);
-//     console.log(originKS);
-//     res.status(200).json({success:true, message:'추가계좌개설 성공', data:originKS})
-// })
+router.post('/keystore', async(req:Request, res:Response, next:NextFunction)=> {
+    const wallet=req.body.wallet; 
+    const d:WalletT = wallet as WalletT;
+    const originKS=JSON.parse(d.keystore);
+    console.log(originKS);
+    res.status(200).json({success:true, message:'추가계좌개설 성공', data:originKS})
+})
 
 
 //  다른 곳에 보유중인 계좌 추가
