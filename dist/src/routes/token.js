@@ -1,7 +1,11 @@
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -36,6 +40,7 @@ const contracts_1 = require("../contracts");
 const dotenv = __importStar(require("dotenv"));
 const ethers_1 = require("ethers");
 dotenv.config();
+;
 const router = express_1.default.Router();
 const { OWNER_PRIVATE_KEY, OWNER_ADDRESS, INFURA_API_KEY } = process.env;
 //const web3 = new Web3(new Web3.providers.HttpProvider(INFURA_GORLI_SERVER!));
@@ -75,19 +80,27 @@ const onlyOwner = (req, res, next) => {
    * @swagger
    * /token:
    *   get:
-   *     summary: 토큰 이름, 심볼 조회
+   *     summary: 토큰 이름, 심볼 조회 [T-1]
    *     tags:
    *      - Token
-   *     description: 토큰 이름, 심볼 조회
+   *     description: 토큰 이름, 심볼 조회 [T-1]
    *     responses:
    *       200:
    *         content:
    *           application/json:
    *             schema:
    *               $ref: '#/components/schemas/ResponseT'
-   *           text/plain:
-   *             schema:
-   *               type: string
+   *               properties:
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     name:
+   *                       type: string
+   *                     symbol:
+   *                       type: integer
+   *                   example:
+   *                     name: ecocircle
+   *                     symbol: ECC
    *
    *
    */
@@ -109,25 +122,28 @@ router.get('/', (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
    * @swagger
    * /token/owner:
    *   get:
-   *     summary: 토큰 컨트랙트 배포 계정주소(owner) 조회
+   *     summary: 토큰 컨트랙트 배포 계정주소(owner) 조회 [T-2]
    *     tags:
    *      - Token
-   *     description: 토큰 컨트랙트 배포 계정주소(owner) 조회
+   *     description: 토큰 컨트랙트 배포 계정주소(owner) 조회 [T-2]
    *     responses:
    *       200:
    *         content:
    *           application/json:
    *             schema:
    *               $ref: '#/components/schemas/ResponseT'
+   *               properties:
+   *                 data:
+   *                   type: string
+   *                   example: 0x...
+   *
    *
    *
    */
 router.get('/owner', onlyOwner, (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const owner = yield sc.owner();
-        res.status(200).json({ success: true, message: '토큰 owner주소 조회 성공', data: {
-                owner: owner
-            } });
+        res.status(200).json({ success: true, message: '토큰 owner주소 조회 성공', data: owner });
     }
     catch (err) {
         console.log(err);
@@ -138,7 +154,7 @@ router.get('/owner', onlyOwner, (req, res, next) => __awaiter(void 0, void 0, vo
    * @swagger
    * /token/owner/change:
    *   post:
-   *     summary: 토큰 컨트랙트 owner변경
+   *     summary: 토큰 컨트랙트 owner변경 [T-3]
    *     requestBody:
    *       description: 변경될 Owner계정을 보내주세요
    *       required: true
@@ -152,7 +168,7 @@ router.get('/owner', onlyOwner, (req, res, next) => __awaiter(void 0, void 0, vo
    *
    *     tags:
    *      - Token
-   *     description: 토큰 컨트랙트 owner변경
+   *     description: 토큰 컨트랙트 owner변경 [T-3]
    *     responses:
    *       200:
    *         content:
@@ -181,7 +197,7 @@ router.post('/owner/change', onlyOwner, (req, res, next) => __awaiter(void 0, vo
    * @swagger
    * /token/mint:
    *   post:
-   *     summary: 토큰 추가 발행
+   *     summary: 토큰 추가 발행 [T-4]
    *     parameters:
    *       - in: header
    *         name: OWNER
@@ -201,16 +217,13 @@ router.post('/owner/change', onlyOwner, (req, res, next) => __awaiter(void 0, vo
    *                 type: integer
    *     tags:
    *      - Token
-   *     description: 토큰 추가 발행
+   *     description: 토큰 추가 발행 [T-4]
    *     responses:
    *       200:
    *         content:
    *           application/json:
    *             schema:
    *               $ref: '#/components/schemas/ResponseT'
-   *           text/plain:
-   *             schema:
-   *               type: string
    *
    *
    *
@@ -220,9 +233,7 @@ router.post('/mint', onlyOwner, (req, res, next) => __awaiter(void 0, void 0, vo
     try {
         const tx = yield scWithSigner.mint(parseInt(amount));
         console.log(`Mined in hash: ${tx.hash}`);
-        res.status(200).json({ success: true, message: '토큰 추가 발행 성공', data: {
-                amount
-            } });
+        res.status(200).json({ success: true, message: '토큰 추가 발행 성공', data: null });
     }
     catch (err) {
         console.log(err);
@@ -234,7 +245,7 @@ router.post('/mint', onlyOwner, (req, res, next) => __awaiter(void 0, void 0, vo
    * @swagger
    * /token/burn:
    *   post:
-   *     summary: 토큰 소각
+   *     summary: 토큰 소각 [T-5]
    *     parameters:
    *       - in: header
    *         name: OWNER
@@ -254,16 +265,13 @@ router.post('/mint', onlyOwner, (req, res, next) => __awaiter(void 0, void 0, vo
    *                 type: integer
    *     tags:
    *      - Token
-   *     description: 토큰 소각
+   *     description: 토큰 소각 [T-5]
    *     responses:
    *       200:
    *         content:
    *           application/json:
    *             schema:
    *               $ref: '#/components/schemas/ResponseT'
-   *           text/plain:
-   *             schema:
-   *               type: string
    *
    *
    */
@@ -272,9 +280,7 @@ router.post('/burn', onlyOwner, (req, res, next) => __awaiter(void 0, void 0, vo
     try {
         const tx = yield scWithSigner.burn(parseInt(amount));
         console.log(`Burn in hash: ${tx.hash}`);
-        res.status(200).json({ success: true, message: '토큰 소각 성공', data: {
-                amount
-            } });
+        res.status(200).json({ success: true, message: '토큰 소각 성공', data: null });
     }
     catch (err) {
         console.log(err);
@@ -286,7 +292,7 @@ router.post('/burn', onlyOwner, (req, res, next) => __awaiter(void 0, void 0, vo
    * @swagger
    * /token/totalsupply:
    *   get:
-   *     summary: 토큰 현재까지의 총 발행량 조회
+   *     summary: 토큰 현재까지의 총 공급량 조회 [T-6]
    *     parameters:
    *       - in: header
    *         name: OWNER
@@ -296,13 +302,17 @@ router.post('/burn', onlyOwner, (req, res, next) => __awaiter(void 0, void 0, vo
    *         required: true
    *     tags:
    *      - Token
-   *     description: 토큰 현재까지의 총 발행량 조회
+   *     description: 토큰 현재까지의 총 공급량 조회 [T-6]
    *     responses:
    *       200:
    *         content:
    *           application/json:
    *             schema:
    *               $ref: '#/components/schemas/ResponseT'
+   *               properties:
+   *                 data:
+   *                   type: string
+   *                   example: 10000000
    *
    *
    */
@@ -312,12 +322,12 @@ router.get('/totalsupply', onlyOwner, (req, res, next) => __awaiter(void 0, void
         if (totalSupply) {
             console.log(totalSupply);
             console.log(totalSupply["type"]);
-            res.status(200).json({ success: true, message: '토큰 총발행량 조회 성공', data: `${totalSupply}` });
+            res.status(200).json({ success: true, message: '토큰 총공급량 조회 성공', data: `${totalSupply}` });
         }
     }
     catch (err) {
         console.log(err);
-        res.status(500).json({ success: false, message: `토큰 총발행량 조회 실패:${err}`, data: null });
+        res.status(500).json({ success: false, message: `토큰 총공급량 조회 실패:${err}`, data: null });
     }
 }));
 //토큰 밸런스 조회
@@ -325,7 +335,7 @@ router.get('/totalsupply', onlyOwner, (req, res, next) => __awaiter(void 0, void
    * @swagger
    * /token/balance/{address}:
    *   get:
-   *     summary: 토큰 잔액(밸런스)조회
+   *     summary: 토큰 잔액(밸런스)조회 [T-7]
    *     parameters:
    *       - in: path
    *         name: address
@@ -336,13 +346,16 @@ router.get('/totalsupply', onlyOwner, (req, res, next) => __awaiter(void 0, void
    *         description: 잔액 조회하고자 하는 주소
    *     tags:
    *      - Token
-   *     description: 토큰 잔액(밸런스)조회
+   *     description: 토큰 잔액(밸런스)조회 [T-7]
    *     responses:
    *       200:
    *         content:
    *           application/json:
    *             schema:
    *               $ref: '#/components/schemas/ResponseT'
+   *               properties:
+   *                 data:
+   *                   type: string
    *
    *
    */
@@ -357,46 +370,12 @@ router.get('/balance/:address', (req, res, next) => __awaiter(void 0, void 0, vo
         res.status(500).json({ success: false, message: `토큰 밸런스(잔액) 조회 실패:${err}`, data: null });
     }
 }));
-// router.post('/transfer/:from',needUserUUID,async(req:Request, res:Response, next:NextFunction)=>{
-//   const uuid=req.uuid;
-//   const from=req.params['from'];
-//  const to=req.body.to; 
-//   const amount=req.body.amount;
-//   const password=req.body.password;
-//   // const signer = new ethers.Wallet(OWNER_PRIVATE_KEY!, provider);
-//   // const scWithSigner=sc.connect(signer);
-//   try{
-//     fs.readFile(`./db/keystores/${req.uuid}.json`,'utf8',async(err, data)=>{
-//       if(data){
-//         const keystore=await lightwallet.keystore.deserialize(data);
-//         await keystore.keyFromPassword(password,async(err:any, pwDerivedKey:any)=>{
-//           if(err){       
-//             console.log("--errorororo--")
-//          res.status(500).json({success:false, message:`프라이빗 정보조회 실패:${err}`, data: null});
-//          }
-//          const key=keystore.exportPrivateKey(from.toString(), pwDerivedKey)
-//          const privateKey='0x'+key;
-//           const fromSigner = new ethers.Wallet(privateKey, provider);
-//            const contract=sc.connect(fromSigner);
-//          const tx=await contract.transfer(to, amount);
-//          console.log(`Transfer in hash: ${tx.hash}`);
-//         res.status(200).json({success:false, message:'토큰 전송 성공', data:{
-//         to: to, amount:amount,
-//         }});
-//         })
-//       }
-//     });
-//   }catch(err){
-//     console.log(err);
-//     res.status(500).json({success:false, message:`토큰 전송 실패:${err}`, data:null});
-//   }
-// });
 //owner로 부터 토큰 전송
 /**
    * @swagger
    * /token/transfer/owner:
    *   post:
-   *     summary: owner로부터 토큰 전송
+   *     summary: owner로부터 토큰 전송 [T-8]
    *     parameters:
    *       - in: header
    *         name: OWNER
@@ -420,13 +399,24 @@ router.get('/balance/:address', (req, res, next) => __awaiter(void 0, void 0, vo
    *                 description: 토큰 양
    *     tags:
    *      - Token
-   *     description: owner로부터 토큰 전송
+   *     description: owner로부터 토큰 전송 [T-8]
    *     responses:
    *       200:
    *         content:
    *           application/json:
    *             schema:
    *               $ref: '#/components/schemas/ResponseT'
+   *               properties:
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     to:
+   *                       type: string
+   *                     amount:
+   *                       type: integer
+   *                   example:
+   *                     to: 0x...
+   *                     amount: 30000
    *
    *
    */
@@ -438,7 +428,7 @@ router.post('/transfer/owner', onlyOwner, (req, res, next) => __awaiter(void 0, 
     try {
         const tx = yield scWithSigner.transfer(to, amount);
         console.log(`Transfer in hash: ${tx.hash}`);
-        res.status(200).json({ success: false, message: 'owner 토큰 전송 성공', data: {
+        res.status(200).json({ success: false, message: 'owner 토큰 전송 성공', data: { from: OWNER_ADDRESS,
                 to: to, amount: amount,
             } });
     }
@@ -452,7 +442,7 @@ router.post('/transfer/owner', onlyOwner, (req, res, next) => __awaiter(void 0, 
    * @swagger
    * /token/transfer:
    *   post:
-   *     summary: 일반 토큰 전송
+   *     summary: 일반 토큰 전송 [T-9]
    *     requestBody:
    *       description: 토큰을 보낼 주소와 토큰 양을 보내주세요.
    *       required: true
@@ -472,13 +462,24 @@ router.post('/transfer/owner', onlyOwner, (req, res, next) => __awaiter(void 0, 
    *                 description: 토큰 양
    *     tags:
    *      - Token
-   *     description: 일반 토큰 전송
+   *     description: 일반 토큰 전송 [T-9]
    *     responses:
    *       200:
    *         content:
    *           application/json:
    *             schema:
    *               $ref: '#/components/schemas/ResponseT'
+   *               properties:
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     to:
+   *                       type: string
+   *                     amount:
+   *                       type: integer
+   *                   example:
+   *                     to: 0x...
+   *                     amount: 30000
    *
    *
    */
@@ -493,7 +494,7 @@ router.post('/transfer', (req, res, next) => __awaiter(void 0, void 0, void 0, f
         const contract = sc.connect(fromSigner);
         const tx = yield contract.transfer(to, amount);
         console.log(`Transfer in hash: ${tx.hash}`);
-        res.status(200).json({ success: false, message: '토큰 전송 성공', data: {
+        res.status(200).json({ success: false, message: '토큰 전송 성공', data: { from: fromSigner.address,
                 to: to, amount: amount,
             } });
     }
@@ -502,6 +503,105 @@ router.post('/transfer', (req, res, next) => __awaiter(void 0, void 0, void 0, f
         res.status(500).json({ success: false, message: `토큰 전송 실패:${err}`, data: null });
     }
 }));
+/**
+   * @swagger
+   * /token/event/transfer/{address}:
+   *   get:
+   *     summary: 송금 이벤트(로그)리스트 조회 [T-10]
+   *     parameters:
+   *       - in: path
+   *         name: address
+   *         schema:
+   *           type: string
+   *           foramt: 0x..
+   *         required: true
+   *         description: 주소(0x..)
+   *     tags:
+   *      - Token
+   *     description: 송금 이벤트(로그)리스트 조회 [T-10]
+   *     responses:
+   *       200:
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ResponseT'
+   *               properties:
+   *                 data:
+   *                   type: array
+   *                   items:
+   *                     $ref: '#/components/schemas/EventT'
+   *
+   *
+   */
+router.get('/event/transfer/:address', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const address = req.params['address'];
+    try {
+        const fromFilter = sc.filters.Transfer(address);
+        const toFilter = sc.filters.Transfer(null, address);
+        const fromEvents = yield sc.queryFilter(fromFilter);
+        const toEvents = yield sc.queryFilter(toFilter);
+        const allEvents = fromEvents.concat(toEvents);
+        let eventList = [];
+        allEvents.map((event, idx) => {
+            if (event.args !== undefined) {
+                const item = {
+                    blockNumber: event.blockNumber,
+                    blockHash: event.blockHash,
+                    transactionHash: event.transactionHash,
+                    idx: idx,
+                    args: {
+                        from: event.args[0],
+                        to: event.args[1],
+                        amount: parseInt(`${event.args[2]}`),
+                    }
+                };
+                eventList.push(item);
+            }
+        });
+        console.log(eventList);
+        res.status(200).json({ success: false, message: `송금 내역 가져오기 성공`,
+            data: eventList.sort((a, b) => {
+                return a.blockNumber - b.blockNumber;
+            })
+        });
+    }
+    catch (err) {
+        console.log(err);
+        res.status(500).json({ success: false, message: `송금 내역 가져오기 실패:${err}`, data: null });
+    }
+}));
+// router.get('/event/mint', async(req:Request, res:Response, next:NextFunction)=>{
+//       try {
+//        const filter = sc.filters.MintOrBurn(OWNER_ADDRESS);
+//        const events:ethers.Event[]=await sc.queryFilter(filter);
+//        let eventList:EventT<TransferArgsT>[]=[];
+//            allEvents.map((event,idx)=>{
+//          if(event.args!==undefined){
+//           const item:EventT<TransferArgsT>= {
+//             blockNumber: event.blockNumber,
+//             blockHash:event.blockHash,
+//             transactionHash: event.transactionHash,
+//             idx: idx,
+//             args: {
+//             from: event.args[0],
+//             to: event.args[1],
+//             amount: parseInt(`${event.args[2]}`),
+//             }
+//         }
+//         eventList.push(item);
+//          } 
+//         });
+//         console.log(eventList);
+//         res.status(200).json({success:false, message:`송금 내역 가져오기 성공`, 
+//         data:eventList.sort((a,b)=>{
+//           return a.blockNumber-b.blockNumber
+//         })
+//       });
+//       } catch(err){
+//         console.log(err);
+//         res.status(500).json({success:false, message:`송금 내역 가져오기 실패:${err}`, data:null});
+//       }
+//   });
 //////=====================  사용 x ==========
 //msgSender 조회 (테스트용)
 router.get('/sender', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
@@ -531,5 +631,9 @@ router.get('/sender2', (req, res, next) => __awaiter(void 0, void 0, void 0, fun
         res.status(500).json({ success: false, message: `msgSender 조회 실패:${err}`, data: null });
     }
 }));
+const getBlockTimestamp = (blockNumber) => __awaiter(void 0, void 0, void 0, function* () {
+    const block = yield provider.getBlock(blockNumber);
+    return block.timestamp;
+});
 exports.default = router;
 //# sourceMappingURL=token.js.map

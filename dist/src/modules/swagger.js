@@ -5,17 +5,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.swaggerSpecs = void 0;
 const swagger_jsdoc_1 = __importDefault(require("swagger-jsdoc"));
+const constants_1 = require("../utils/constants");
 // const swaggerUi = require('swagger-ui-express');
 //const swaggereJsdoc = require('swagger-jsdoc');
 const options = {
     definition: {
         openapi: "3.0.0",
         info: {
-            title: 'Test API',
+            title: 'Ecocircle Blockchain API',
             version: '1.0.0',
-            description: 'Test API with express',
+            description: `${constants_1.HOST}docs`,
         },
-        host: 'localhost:1234',
+        host: constants_1.HOST,
         basePath: '/',
     },
     apis: ['./src/routes/*.ts', './swagger/*'],

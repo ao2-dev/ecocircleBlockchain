@@ -1,7 +1,11 @@
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -42,6 +46,7 @@ router.use('/wallet', wallet_1.default);
  * components:
  *  schemas:
  *    ResponseT:
+ *      description: API 응답데이터 형식(모두 동일)
  *      type: object
  *      properties:
  *        success:
@@ -51,8 +56,57 @@ router.use('/wallet', wallet_1.default);
  *        data:
  *          anyOf:
  *          - type: object
+ *          - type: integer
+ *          - type: string
  *          nullable: true
- *
+ *    WalletT:
+ *      description: 지갑 정보가 담길 테이블(타입) 입니다.
+ *      type: object
+ *      properties:
+ *        keystore:
+ *          type: string
+ *        addresses:
+ *          type: array
+ *          items:
+ *            $ref: '#/components/schemas/Web3AddressT'
+ *        uuid:
+ *          type: string
+ *        mnemonic:
+ *          type: string
+ *    Web3AddressT:
+ *      description: 지갑 내에 저장될 주소 테이블(타입) 입니다.
+ *      type: object
+ *      properties:
+ *        index:
+ *          type: integer
+ *        address:
+ *          type: string
+ *        privateKey:
+ *          type: string
+ *    EventT:
+ *      description: 트랜잭션 이벤트 타입
+ *      type: object
+ *      properties:
+ *        blockNumber:
+ *          type: integer
+ *        blockHash:
+ *          type: string
+ *        transactionHash:
+ *          type: string
+ *        idx:
+ *          type: integer
+ *        args:
+ *          $ref: '#/components/schemas/TransferArgsT'
+ *    TransferArgsT:
+ *      description: (토큰 혹은 이더리움) 송금 이벤트(로그) 타입
+ *      type: object
+ *      properties:
+ *        from:
+ *          type: string
+ *        to:
+ *          type: string
+ *        amount:
+ *          type: interfer
  *    Dog:
  *      type: object
  *      properties:
@@ -89,17 +143,6 @@ router.use('/wallet', wallet_1.default);
   */
 router.get('/', (req, res, next) => {
     res.status(200).json({ success: true, message: '인덱스', data: '환영합니다' });
-});
-/**
- * @swagger
- * /test:
- *  get:
- *   tags:
- *    - Index
- *
- */
-router.get('/test', (req, res, next) => {
-    res.status(200).json({ success: true, message: 'env 테스트', data: TEST });
 });
 // router.get('/', async (req:Request, res:Response, next:NextFunction)=> {
 //     try {
