@@ -5,7 +5,7 @@ import fs from 'fs';
 import {v5} from 'uuid';
 import * as dotenv from 'dotenv'
 import { ethers, Wallet } from 'ethers';
-import { Token } from '../../contracts';
+import { Token } from '../contracts';
 import { randomBytes } from 'crypto';
 
 interface Web3AddressT{
@@ -37,31 +37,17 @@ INFURA_API_KEY
 );
 
 
-  /**
-   * @swagger
-   * tags:
-   *   name: Wallet
-   *   description: 지갑 관련 API
-   */
+/**
+ * @swagger
+ * tags:
+ *   name: Wallet
+ *   description: 지갑 관련 API
+ */
 
    router.get('/', async(req:Request, res:Response, next:NextFunction)=> {
     res.status(200).json({success:true, message:'성공', data:'wallet'})
 })
-// router.get('/', async(req:Request, res:Response, next:NextFunction)=> {
-    
-//     try {
-//         fs.readFile(`./db/keystores/${req.uuid}.json`,'utf8',async(err, data)=>{
-//             const d: WalletT = JSON.parse(data);
-//             res.status(200).json({success:true, message:'월렛정보 조회 성공', data:{walletInfo:d}})
-    
-//         });
-//     }catch(err){
-//         res.status(500).json({success:false, message:`월렛정보 조회 실패:${err}`, data:null});
-//     }
-// });
 
-  // 신규 지갑 생성 : 니모닉은 지갑을 구분하는 문구임. privatekey만 있으면 account는 가져올 수 있음 ==> 프론트에서 secure storage 저장
-//생성시 provider 없음
 /**
    * @swagger
    * /wallet/create:
