@@ -40,13 +40,11 @@ const web3_1 = __importDefault(require("web3"));
 const uuid_1 = require("uuid");
 const dotenv = __importStar(require("dotenv"));
 const ethers_1 = require("ethers");
-const nft_1 = __importDefault(require("./nft"));
 dotenv.config();
 const router = express_1.default.Router();
 const { OWNER_PRIVATE_KEY, INFURA_ROPSTEN_SERVER, OWNER_ADDRESS, INFURA_API_KEY } = process.env;
 const web3 = new web3_1.default(new web3_1.default.providers.HttpProvider(INFURA_ROPSTEN_SERVER));
 const provider = new ethers_1.ethers.providers.InfuraProvider("ropsten", INFURA_API_KEY);
-router.use('/nft', nft_1.default);
 /**
  * @swagger
  * tags:

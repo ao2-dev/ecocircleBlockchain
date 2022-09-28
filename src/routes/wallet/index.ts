@@ -7,7 +7,6 @@ import * as dotenv from 'dotenv'
 import { ethers, Wallet } from 'ethers';
 import { Token } from '../../contracts';
 import { randomBytes } from 'crypto';
-import nftRouter from './nft';
 
 interface Web3AddressT{
     index?: number;
@@ -37,7 +36,6 @@ const provider= new ethers.providers.InfuraProvider("ropsten",
 INFURA_API_KEY
 );
 
-router.use('/nft', nftRouter);
 
   /**
    * @swagger
