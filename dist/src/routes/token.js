@@ -1,11 +1,7 @@
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -515,10 +511,12 @@ router.post('/transfer', (req, res, next) => __awaiter(void 0, void 0, void 0, f
         const fromSigner = new ethers_1.ethers.Wallet(privateKey, provider);
         const contract = sc.connect(fromSigner);
         const tx = yield contract.transfer(to, amount);
-        console.log(`Transfer in hash: ${tx.hash}`);
-        res.status(200).json({ success: false, message: '토큰 전송 성공', data: { from: fromSigner.address,
-                to: to, amount: amount,
-            } });
+        yield tx.wait().then((receipt) => {
+            console.log(receipt);
+            res.status(200).json({ success: false, message: 'owner 토큰 전송 성공', data: { from: fromSigner.address,
+                    to: to, amount: amount, txHash: tx.hash, receipt: receipt
+                } });
+        });
     }
     catch (err) {
         console.log(err);

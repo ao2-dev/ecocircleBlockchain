@@ -1,11 +1,7 @@
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -51,18 +47,9 @@ const provider = new ethers_1.ethers.providers.InfuraProvider("ropsten", INFURA_
  *   name: Wallet
  *   description: 지갑 관련 API
  */
-// router.get('/', async(req:Request, res:Response, next:NextFunction)=> {
-//     try {
-//         fs.readFile(`./db/keystores/${req.uuid}.json`,'utf8',async(err, data)=>{
-//             const d: WalletT = JSON.parse(data);
-//             res.status(200).json({success:true, message:'월렛정보 조회 성공', data:{walletInfo:d}})
-//         });
-//     }catch(err){
-//         res.status(500).json({success:false, message:`월렛정보 조회 실패:${err}`, data:null});
-//     }
-// });
-// 신규 지갑 생성 : 니모닉은 지갑을 구분하는 문구임. privatekey만 있으면 account는 가져올 수 있음 ==> 프론트에서 secure storage 저장
-//생성시 provider 없음
+router.get('/', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    res.status(200).json({ success: true, message: '성공', data: 'wallet' });
+}));
 /**
    * @swagger
    * /wallet/create:
@@ -208,13 +195,13 @@ router.post('/accounts/add/new', (req, res, next) => __awaiter(void 0, void 0, v
         res.status(500).json({ success: false, message: `추가계좌개설 실패:${err}`, data: null });
     }
 }));
-// router.post('/keystore', async(req:Request, res:Response, next:NextFunction)=> {
-//     const wallet=req.body.wallet; 
-//     const d:WalletT = wallet as WalletT;
-//     const originKS=JSON.parse(d.keystore);
-//     console.log(originKS);
-//     res.status(200).json({success:true, message:'추가계좌개설 성공', data:originKS})
-// })
+router.post('/keystore', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const wallet = req.body.wallet;
+    const d = wallet;
+    const originKS = JSON.parse(d.keystore);
+    console.log(originKS);
+    res.status(200).json({ success: true, message: '추가계좌개설 성공', data: originKS });
+}));
 //  다른 곳에 보유중인 계좌 추가
 /**
    * @swagger

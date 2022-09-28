@@ -539,10 +539,13 @@ router.post('/transfer',async(req:Request, res:Response, next:NextFunction)=>{
       const fromSigner = new ethers.Wallet(privateKey, provider);
       const contract=sc.connect(fromSigner);
       const tx=await contract.transfer(to, amount);
-      console.log(`Transfer in hash: ${tx.hash}`);
-    res.status(200).json({success:false, message:'토큰 전송 성공', data:{from:fromSigner.address,
-    to: to, amount:amount,
-    }});
+      await tx.wait().then((receipt:object)=>{
+        console.log(receipt);
+        res.status(200).json({success:false, message:'owner 토큰 전송 성공', data:{from:fromSigner.address,
+          to: to, amount:amount, txHash:tx.hash, receipt:receipt
+          }});
+  
+       })
 
   }catch(err){
     console.log(err);
