@@ -52,18 +52,11 @@ app.use('/', index_1.default);
 app.use(function (req, res, next) {
     next((0, http_errors_1.default)(404));
 });
-app.listen('1234', () => {
+app.listen(PORT, () => {
     console.log(`
     ################################################
-    🛡️  Server listening on port: 1234🛡️
+    🛡️  Server listening on port: ${PORT}🛡️
     ################################################
     `);
 });
-// app.listen(PORT, ()=>{
-//     console.log(`
-//     ################################################
-//     🛡️  Server listening on port: ${PORT}🛡️
-//     ################################################
-//     `)
-// })
 //# sourceMappingURL=app.js.map

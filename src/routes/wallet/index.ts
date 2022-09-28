@@ -5,8 +5,9 @@ import fs from 'fs';
 import {v5} from 'uuid';
 import * as dotenv from 'dotenv'
 import { ethers, Wallet } from 'ethers';
-import { Token } from '../contracts';
+import { Token } from '../../contracts';
 import { randomBytes } from 'crypto';
+import nftRouter from './nft';
 
 interface Web3AddressT{
     index?: number;
@@ -36,7 +37,7 @@ const provider= new ethers.providers.InfuraProvider("ropsten",
 INFURA_API_KEY
 );
 
-
+router.use('/nft', nftRouter);
 
   /**
    * @swagger
@@ -45,7 +46,9 @@ INFURA_API_KEY
    *   description: 지갑 관련 API
    */
 
-
+   router.get('/', async(req:Request, res:Response, next:NextFunction)=> {
+    res.status(200).json({success:true, message:'성공', data:'wallet'})
+})
 // router.get('/', async(req:Request, res:Response, next:NextFunction)=> {
     
 //     try {

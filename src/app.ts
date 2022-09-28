@@ -8,6 +8,11 @@ import * as dotenv from 'dotenv' // see https://github.com/motdotla/dotenv#how-d
 import Router from './routes/index';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpecs } from './modules/swagger';
+import WebSocet from 'ws';
+import { ethers } from 'ethers';
+import { Transaction } from '@ethereumjs/tx';
+
+
 dotenv.config()
 
 const app = express();
@@ -21,7 +26,6 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
-
 app.use('/', Router);
 
 // catch 404 and forward to error handler
@@ -38,6 +42,35 @@ app.use(function(req, res, next) {
 //     `)
 // })
   
+
+const {OWNER_PRIVATE_KEY,INFURA_ROPSTEN_WEBSOCKET} = process.env;
+export const socket=new WebSocet.Server({port:1235});
+
+socket.on('connection', (ws:any, req:any)=> {
+  const ip=req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+  console.log('새로운 클라이언트 접속',ip);
+  ws.on('message', (message:any)=> {
+    console.log(message);
+  });
+
+  ws.on('error', (err:any)=>{
+    console.log(`error !!:${err}`);
+  });
+
+  ws.on('close', ()=>{
+    console.log('클라이언트 접속 해제',ip);
+ 
+  });
+})
+// const wsProvider= new ethers.providers.WebSocketProvider(INFURA_ROPSTEN_WEBSOCKET!,"ropsten");
+// wsProvider.on("pending",(txHash)=>{
+//   wsProvider.getTransaction(txHash).then((tx)=>{
+//     console.log(tx);
+//   })
+//  })
+//const socket=new WebSocket("ws://localhost:1235")
+
+
 app.listen(PORT, ()=>{
     console.log(`
     ################################################

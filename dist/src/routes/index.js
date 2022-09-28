@@ -29,6 +29,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const token_1 = __importDefault(require("./token"));
 const wallet_1 = __importDefault(require("./wallet"));
+const socket_1 = __importDefault(require("./socket"));
 const dotenv = __importStar(require("dotenv"));
 const ethers_1 = require("ethers");
 dotenv.config();
@@ -41,6 +42,7 @@ const router = express_1.default.Router();
 //const payRouter:Router = require('./pay');
 router.use('/token', token_1.default);
 router.use('/wallet', wallet_1.default);
+router.use('/socket', socket_1.default);
 /**
  * @swagger
  * components:

@@ -37,7 +37,7 @@ interface TransferArgsT {
 
 
 const router: Router = express.Router();
-const {OWNER_PRIVATE_KEY,OWNER_ADDRESS,INFURA_API_KEY, INFURA_ROPSTEN_SERVER} = process.env;
+const {OWNER_PRIVATE_KEY,OWNER_ADDRESS,INFURA_API_KEY, INFURA_ROPSTEN_SERVER,INFURA_ROPSTEN_WEBSOCKET} = process.env;
 const web3 = new Web3(new Web3.providers.HttpProvider(INFURA_ROPSTEN_SERVER!));
 // const signer = web3.eth.accounts.privateKeyToAccount(
 // OWNER_PRIVATE_KEY!
@@ -48,6 +48,7 @@ const scWeb3=new web3.eth.Contract(Token.abi as AbiItem[] , Token.address);
 const provider= new ethers.providers.InfuraProvider("ropsten",
 INFURA_API_KEY
 )
+const wsProvider= new ethers.providers.WebSocketProvider(INFURA_ROPSTEN_WEBSOCKET!,"ropsten");
 const sc=new ethers.Contract( Token.address, Token.abi , provider);
 const signer = new ethers.Wallet(OWNER_PRIVATE_KEY!, provider);
 const scWithSigner=sc.connect(signer);
@@ -437,16 +438,43 @@ router.post('/transfer/owner',onlyOwner,async(req:Request, res:Response, next:Ne
 
  const to=req.body.to; 
   const amount=req.body.amount;
-
+  //const network=wsProvider.getNetwork();
+  //network.then(res=> console.log(`[${(new Date).toLocaleTimeString()}] Connected to chain ID ${res.chainId}`)) 
   // const signer = new ethers.Wallet(OWNER_PRIVATE_KEY!, provider);
   // const scWithSigner=sc.connect(signer);
   try{
-      
+
       const tx=await scWithSigner.transfer(to, amount);
-      console.log(`Transfer in hash: ${tx.hash}`);
-    res.status(200).json({success:false, message:'owner 토큰 전송 성공', data:{from:OWNER_ADDRESS,
-    to: to, amount:amount,
-    }});
+      console.log(`====txHash: ${tx.hash}`);
+       await tx.wait().then((receipt:object)=>{
+        console.log(receipt);
+        res.status(200).json({success:false, message:'owner 토큰 전송 성공', data:{from:OWNER_ADDRESS,
+          to: to, amount:amount, txHash:tx.hash,receipt:receipt
+          }});
+
+       })
+
+      // wsProvider.on("pending",(txHash)=>{
+      //   console.log("-----TXHASh-----");
+      //   console.log(`${txHash}`);
+      //   console.log("--------");
+      //   console.log(txHash);
+
+      //   console.log("----------")
+      //   if(txHash){
+      //      if(txHash===tx.hash){
+      //       console.log(`${txHash} pending......>.<`)
+      //       wsProvider.getTransaction(txHash).then((tx)=>{
+      //           console.log(tx);
+               
+                
+      //         })
+      //       }
+            
+      //   }
+      //  });
+     
+
 
   }catch(err){
     console.log(err);
