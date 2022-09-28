@@ -2,8 +2,10 @@
 import express,  {Request, Response, NextFunction, Router} from 'express';
 import tokenRouter from './token';
 import wallterRouter from './wallet';
+import socketRouter from './socket';
 import * as dotenv from 'dotenv'
 import { ethers } from 'ethers';
+
 
 dotenv.config()
 //const web3 = new Web3(new Web3.providers.HttpProvider(GANACHE_RPC_SERVER));
@@ -20,6 +22,7 @@ const router: Router = express.Router();
 //const payRouter:Router = require('./pay');
 router.use('/token', tokenRouter);
 router.use('/wallet', wallterRouter);
+router.use('/socket', socketRouter);
 
 /**
  * @swagger

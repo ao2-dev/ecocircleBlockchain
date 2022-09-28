@@ -1,11 +1,7 @@
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -39,16 +35,17 @@ const express_1 = __importDefault(require("express"));
 const contracts_1 = require("../contracts");
 const dotenv = __importStar(require("dotenv"));
 const ethers_1 = require("ethers");
+const web3_1 = __importDefault(require("web3"));
 dotenv.config();
 ;
 const router = express_1.default.Router();
-const { OWNER_PRIVATE_KEY, OWNER_ADDRESS, INFURA_API_KEY } = process.env;
-//const web3 = new Web3(new Web3.providers.HttpProvider(INFURA_GORLI_SERVER!));
+const { OWNER_PRIVATE_KEY, OWNER_ADDRESS, INFURA_API_KEY, INFURA_ROPSTEN_SERVER } = process.env;
+const web3 = new web3_1.default(new web3_1.default.providers.HttpProvider(INFURA_ROPSTEN_SERVER));
 // const signer = web3.eth.accounts.privateKeyToAccount(
 // OWNER_PRIVATE_KEY!
 // );
 //token contract 
-//const sc=new web3.eth.Contract(Token.abi as AbiItem[] , Token.address);
+const scWeb3 = new web3.eth.Contract(contracts_1.Token.abi, contracts_1.Token.address);
 const provider = new ethers_1.ethers.providers.InfuraProvider("ropsten", INFURA_API_KEY);
 const sc = new ethers_1.ethers.Contract(contracts_1.Token.address, contracts_1.Token.abi, provider);
 const signer = new ethers_1.ethers.Wallet(OWNER_PRIVATE_KEY, provider);
@@ -503,11 +500,79 @@ router.post('/transfer', (req, res, next) => __awaiter(void 0, void 0, void 0, f
         res.status(500).json({ success: false, message: `토큰 전송 실패:${err}`, data: null });
     }
 }));
+//일반 토큰전송  (비공개키 필요: wallet에서 가져온 후 호출하기)
+/**
+   * @swagger
+   * /token/gas/transfer:
+   *   post:
+   *     summary: 일반 토큰 전송 예상 가스비 조회[T-9-1]
+   *     requestBody:
+   *       description: 토큰을 보낼 주소와 토큰 양을 보내주세요.
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               from:
+   *                 type: string
+   *                 description: 보내는 이의 공개키
+   *               to:
+   *                 type: string
+   *                 description: 토큰을 보낼 주소
+   *               amount:
+   *                 type: integer
+   *                 description: 토큰 양
+   *     tags:
+   *      - Token
+   *     description: 일반 토큰 전송 예상 가스비 조회[T-9-1]
+   *     responses:
+   *       200:
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ResponseT'
+   *               properties:
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     wei:
+   *                       description: wei단위의 가스비 산출
+   *                       type: string
+   *                     ehter:
+   *                       description: ether 단위의 가스비 산출
+   *                       type: string
+   *                   example:
+   *                     wei: 54242
+   *                     ether: 0.000000000000054242
+   *
+   *
+   */
+router.post('/gas/transfer', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const from = req.body.from; //보내는 주소
+    const to = req.body.to;
+    const amount = req.body.amount;
+    try {
+        //const fromSigner = new ethers.Wallet(privateKey, provider);
+        //const contract=scWeb3.methods.
+        yield scWeb3.methods.transfer(to, amount).estimateGas({ from: from }).then((gas) => {
+            console.log(`${gas}`);
+            const parsedGas = ethers_1.utils.formatEther(gas);
+            console.log("============PArsedGAs========");
+            console.log(parsedGas);
+            res.status(200).json({ success: false, message: '토큰 전송 성공', data: { wei: `${gas}`, ether: parsedGas } });
+        });
+    }
+    catch (err) {
+        console.log(err);
+        res.status(500).json({ success: false, message: `토큰 전송 실패:${err}`, data: null });
+    }
+}));
 /**
    * @swagger
    * /token/event/transfer/{address}:
    *   get:
-   *     summary: 송금 이벤트(로그)리스트 조회 [T-10]
+   *     summary: 송금 이벤트(로그)리스트 조회 [T-9-2]
    *     parameters:
    *       - in: path
    *         name: address
@@ -518,7 +583,7 @@ router.post('/transfer', (req, res, next) => __awaiter(void 0, void 0, void 0, f
    *         description: 주소(0x..)
    *     tags:
    *      - Token
-   *     description: 송금 이벤트(로그)리스트 조회 [T-10]
+   *     description: 송금 이벤트(로그)리스트 조회 [T-9-2]
    *     responses:
    *       200:
    *         content:
