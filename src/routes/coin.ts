@@ -1,5 +1,4 @@
 import express, { Router ,Request, Response, NextFunction} from "express";
-import CoinGecko from 'coingecko-api';
 import { CoinGeckoClient } from ".";
 
 const router: Router = express.Router();
