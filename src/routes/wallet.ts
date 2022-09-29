@@ -1,12 +1,8 @@
 import express,{Request, Response, NextFunction, Router}  from 'express';
-import Web3 from 'web3';
-import lightwallet from 'eth-lightwallet';
-import fs from 'fs';
 import {v5} from 'uuid';
-import * as dotenv from 'dotenv'
 import { ethers, Wallet } from 'ethers';
-import { Token } from '../contracts';
-import { randomBytes } from 'crypto';
+import { OWNER, OWNER_PRIVATE_KEY, provider, web3 } from '.';
+
 
 interface Web3AddressT{
     index?: number;
@@ -26,16 +22,9 @@ interface WalletT {
     mnemonic: string;
 }
 
-dotenv.config()
+
 
 const router: Router = express.Router();
-
-const {OWNER_PRIVATE_KEY,INFURA_ROPSTEN_SERVER,OWNER_ADDRESS,INFURA_API_KEY} = process.env;
-const web3 = new Web3(new Web3.providers.HttpProvider(INFURA_ROPSTEN_SERVER!));
-const provider= new ethers.providers.InfuraProvider("ropsten",
-INFURA_API_KEY
-);
-
 
 /**
  * @swagger
@@ -522,6 +511,36 @@ router.patch('/accounts/name/:address',async(req:Request, res:Response, next:Nex
     }
 });
 
+
+router.post('/send/ether', async(req:Request, res:Response, next:NextFunction)=> {
+    const to=req.body.to;
+    const amount=req.body.amount;
+   // const from = req.body.from;
+    console.log(`PARSED ETHER: ${ethers.utils.parseEther(amount)}`);
+    web3.eth.accounts.wallet.add(OWNER_PRIVATE_KEY!);
+
+
+    try {
+        const txParams={
+            from: OWNER,
+            to: to!,
+            value: web3.utils.toWei(amount!),
+            gas:8000000,
+           // gasPrice: ethers.utils.hexlify(parseInt(`${await provider.getGasPrice()}`)),
+
+        }
+       await web3.eth.sendTransaction(txParams).then((receipt)=>{
+        console.log("///////////////RECEIPT//////////////////")
+        console.log(receipt);
+        console.log("////////////////////////////////////////")
+        res.status(200).json({success:false, message:`이더리움 전송 성공!`, data:receipt})
+       });
+       
+    }catch(err){
+        console.log(err);
+        res.status(500).json({success:false, message:`이더리움 전송 실패 : ${err}`, data:null})
+    }
+});
 
 ////==========================보류 ===============================///
   //[x]  아직 보류 !!~!// 신규 지갑 생성 : 니모닉은 지갑을 구분하는 문구임. privatekey만 있으면 account는 가져올 수 있음 ==> 프론트에서 secure storage 저장

@@ -5,6 +5,7 @@ import {ethers, utils } from 'ethers';
 import { hexZeroPad } from 'ethers/lib/utils';
 import Web3 from 'web3';
 import { AbiItem } from 'web3-utils';
+import { OWNER, provider, tokenSC, tokenSCSigned, tokenSCWeb3 } from '.';
 dotenv.config()
 
 // interface EventT {
@@ -37,27 +38,12 @@ interface TransferArgsT {
 
 
 const router: Router = express.Router();
-const {OWNER_PRIVATE_KEY,OWNER_ADDRESS,INFURA_API_KEY, INFURA_ROPSTEN_SERVER,INFURA_ROPSTEN_WEBSOCKET} = process.env;
-const web3 = new Web3(new Web3.providers.HttpProvider(INFURA_ROPSTEN_SERVER!));
-// const signer = web3.eth.accounts.privateKeyToAccount(
-// OWNER_PRIVATE_KEY!
-// );
-//token contract 
-
-const scWeb3=new web3.eth.Contract(Token.abi as AbiItem[] , Token.address);
-const provider= new ethers.providers.InfuraProvider("ropsten",
-INFURA_API_KEY
-)
-const wsProvider= new ethers.providers.WebSocketProvider(INFURA_ROPSTEN_WEBSOCKET!,"ropsten");
-const sc=new ethers.Contract( Token.address, Token.abi , provider);
-const signer = new ethers.Wallet(OWNER_PRIVATE_KEY!, provider);
-const scWithSigner=sc.connect(signer);
 
 //middleware
 const onlyOwner=(req:Request, res:Response, next:NextFunction)=>{
   const owner=req.get('OWNER');
   if(owner){
-    if(owner===OWNER_ADDRESS){
+    if(owner===OWNER){
       req.owner=owner;
       console.log(owner);
       next();
@@ -107,8 +93,8 @@ const onlyOwner=(req:Request, res:Response, next:NextFunction)=>{
    */
 router.get('/', async (req:Request, res:Response, next:NextFunction)=>{
   try {
-    const tokenName=await sc.name();
-    const symbol=await sc.symbol();
+    const tokenName=await tokenSC.name();
+    const symbol=await tokenSC.symbol();
     res.status(200).json({success:true, message:'토큰정보조회 성공', data:{
       name:tokenName,
       symbol:symbol,
@@ -146,7 +132,7 @@ router.get('/', async (req:Request, res:Response, next:NextFunction)=>{
    */
 router.get('/owner', onlyOwner,async (req:Request, res:Response, next:NextFunction)=>{
   try {
-    const owner=await sc.owner();
+    const owner=await tokenSC.owner();
     res.status(200).json({success:true, message:'토큰 owner주소 조회 성공', data: owner});
   }catch(err){
     console.log(err);
@@ -187,7 +173,7 @@ router.get('/owner', onlyOwner,async (req:Request, res:Response, next:NextFuncti
 router.post('/owner/change',onlyOwner, async (req:Request, res:Response, next:NextFunction)=>{
   const newOwner=req.body.newOwner;
   try {
-    const tx=await scWithSigner.transferOwnership(newOwner);
+    const tx=await tokenSCSigned.transferOwnership(newOwner);
     console.log(`owner change in hash: ${tx.hash}`);
    res.status(200).json({success:true, message:'owner 변경 성공', data:{
    txHash: tx.hash
@@ -240,7 +226,7 @@ router.post('/owner/change',onlyOwner, async (req:Request, res:Response, next:Ne
 router.post('/mint',onlyOwner,async(req:Request, res:Response, next:NextFunction)=>{
   const amount=req.body.amount;
   try {
-    const tx=await scWithSigner.mint(parseInt(amount))
+    const tx=await tokenSCSigned.mint(parseInt(amount))
      console.log(`Mined in hash: ${tx.hash}`);
     res.status(200).json({success:true, message:'토큰 추가 발행 성공', data:null});
   }catch(err){
@@ -287,7 +273,7 @@ router.post('/mint',onlyOwner,async(req:Request, res:Response, next:NextFunction
 router.post('/burn',onlyOwner,async(req:Request, res:Response, next:NextFunction)=>{
   const amount=req.body.amount;
   try {
-    const tx=await scWithSigner.burn(parseInt(amount))
+    const tx=await tokenSCSigned.burn(parseInt(amount))
      console.log(`Burn in hash: ${tx.hash}`);
     res.status(200).json({success:true, message:'토큰 소각 성공', data:null});
   }catch(err){
@@ -329,7 +315,7 @@ router.post('/burn',onlyOwner,async(req:Request, res:Response, next:NextFunction
    */
 router.get('/totalsupply',onlyOwner, async(req:Request, res:Response, next:NextFunction)=>{
   try {
-    const totalSupply=await scWithSigner.totalSupply();
+    const totalSupply=await tokenSCSigned.totalSupply();
     if(totalSupply){
       console.log(totalSupply);
       console.log(totalSupply["type"])
@@ -375,7 +361,7 @@ router.get('/totalsupply',onlyOwner, async(req:Request, res:Response, next:NextF
 router.get('/balance/:address', async(req:Request, res:Response, next:NextFunction)=>{
   const address=req.params['address'];
   try {
-    const balance=await scWithSigner.balanceOf(address);
+    const balance=await tokenSCSigned.balanceOf(address);
       res.status(200).json({success:true, message:'토큰 밸런스(잔액) 조회 성공', data: `${balance}`});
   }catch(err){
     console.log(err);
@@ -441,15 +427,15 @@ router.post('/transfer/owner',onlyOwner,async(req:Request, res:Response, next:Ne
   //const network=wsProvider.getNetwork();
   //network.then(res=> console.log(`[${(new Date).toLocaleTimeString()}] Connected to chain ID ${res.chainId}`)) 
   // const signer = new ethers.Wallet(OWNER_PRIVATE_KEY!, provider);
-  // const scWithSigner=sc.connect(signer);
+  // const tokenSCSigned=tokenSC.connect(signer);
   try{
 
-      const tx=await scWithSigner.transfer(to, amount);
+      const tx=await tokenSCSigned.transfer(to, amount);
       console.log(`====txHash: ${tx.hash}`);
        await tx.wait().then((receipt:object)=>{
         console.log(receipt);
-        res.status(200).json({success:false, message:'owner 토큰 전송 성공', data:{from:OWNER_ADDRESS,
-          to: to, amount:amount, txHash:tx.hash,receipt:receipt
+        res.status(200).json({success:false, message:'owner 토큰 전송 성공', data:{from:OWNER,
+          to: to, amount:amount, txHash:tx.hash, receipt:receipt
           }});
 
        })
@@ -534,10 +520,10 @@ router.post('/transfer',async(req:Request, res:Response, next:NextFunction)=>{
   const amount=req.body.amount;
 
   // const signer = new ethers.Wallet(OWNER_PRIVATE_KEY!, provider);
-  // const scWithSigner=sc.connect(signer);
+  // const tokenSCSigned=tokenSC.connect(signer);
   try{
       const fromSigner = new ethers.Wallet(privateKey, provider);
-      const contract=sc.connect(fromSigner);
+      const contract=tokenSC.connect(fromSigner);
       const tx=await contract.transfer(to, amount);
       await tx.wait().then((receipt:object)=>{
         console.log(receipt);
@@ -611,8 +597,8 @@ router.post('/gas/transfer',async(req:Request, res:Response, next:NextFunction)=
 
   try{
       //const fromSigner = new ethers.Wallet(privateKey, provider);
-      //const contract=scWeb3.methods.
-      await scWeb3.methods.transfer(to, amount).estimateGas({from:from}).then((gas:any)=>{
+      //const contract=tokenSCWeb3.methods.
+      await tokenSCWeb3.methods.transfer(to, amount).estimateGas({from:from}).then((gas:any)=>{
         console.log(`${gas}`);
       const parsedGas=utils.formatEther(gas);
       console.log("============PArsedGAs========")
@@ -661,11 +647,11 @@ router.get('/event/transfer/:address', async(req:Request, res:Response, next:Nex
 const address=req.params['address'];
 
     try {
-     const fromFilter = sc.filters.Transfer(address);
-      const toFilter=sc.filters.Transfer(null, address);
+     const fromFilter = tokenSC.filters.Transfer(address);
+      const toFilter=tokenSC.filters.Transfer(null, address);
  
-     const fromEvents:ethers.Event[]=await sc.queryFilter(fromFilter);
-     const toEvents: ethers.Event[]=await sc.queryFilter(toFilter);
+     const fromEvents:ethers.Event[]=await tokenSC.queryFilter(fromFilter);
+     const toEvents: ethers.Event[]=await tokenSC.queryFilter(toFilter);
 
     const allEvents=fromEvents.concat(toEvents);
 
@@ -705,8 +691,8 @@ const address=req.params['address'];
 // router.get('/event/mint', async(req:Request, res:Response, next:NextFunction)=>{
   
 //       try {
-//        const filter = sc.filters.MintOrBurn(OWNER_ADDRESS);
-//        const events:ethers.Event[]=await sc.queryFilter(filter);
+//        const filter = tokenSC.filters.MintOrBurn(OWNER);
+//        const events:ethers.Event[]=await tokenSC.queryFilter(filter);
 
 
   
@@ -744,7 +730,7 @@ const address=req.params['address'];
 //msgSender 조회 (테스트용)
 router.get('/sender', async(req:Request, res:Response, next:NextFunction)=>{
   try {
-    const msgSender=await scWithSigner.test()
+    const msgSender=await tokenSCSigned.test()
     res.status(200).json({success:true, message:'msgSender 조회 성공', data:{
       msgSender
     }});
@@ -759,7 +745,7 @@ router.get('/sender2', async(req:Request, res:Response, next:NextFunction)=>{
   const privateKey=req.body.privatekey;
   try {
     const fromSigner = new ethers.Wallet(privateKey, provider);
-    const contract=sc.connect(fromSigner);
+    const contract=tokenSC.connect(fromSigner);
     const msgSender=await contract.test();
  
     res.status(200).json({success:true, message:'msgSender 조회 성공', data:{

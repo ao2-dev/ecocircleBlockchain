@@ -42,7 +42,7 @@ const dotenv = __importStar(require("dotenv"));
 const ethers_1 = require("ethers");
 dotenv.config();
 const router = express_1.default.Router();
-const { OWNER_PRIVATE_KEY, INFURA_ROPSTEN_SERVER, OWNER_ADDRESS, INFURA_API_KEY } = process.env;
+const { OWNER_PRIVATE_KEY, INFURA_ROPSTEN_SERVER, OWNER, INFURA_API_KEY } = process.env;
 const web3 = new web3_1.default(new web3_1.default.providers.HttpProvider(INFURA_ROPSTEN_SERVER));
 const provider = new ethers_1.ethers.providers.InfuraProvider("ropsten", INFURA_API_KEY);
 /**

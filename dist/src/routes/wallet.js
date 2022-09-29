@@ -1,23 +1,4 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -32,15 +13,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const web3_1 = __importDefault(require("web3"));
 const uuid_1 = require("uuid");
-const dotenv = __importStar(require("dotenv"));
 const ethers_1 = require("ethers");
-dotenv.config();
+const _1 = require(".");
 const router = express_1.default.Router();
-const { OWNER_PRIVATE_KEY, INFURA_ROPSTEN_SERVER, OWNER_ADDRESS, INFURA_API_KEY } = process.env;
-const web3 = new web3_1.default(new web3_1.default.providers.HttpProvider(INFURA_ROPSTEN_SERVER));
-const provider = new ethers_1.ethers.providers.InfuraProvider("ropsten", INFURA_API_KEY);
 /**
  * @swagger
  * tags:
@@ -84,10 +60,10 @@ router.post('/create', (req, res, next) => __awaiter(void 0, void 0, void 0, fun
     const password = req.body.password;
     try {
         const wallet = ethers_1.Wallet.createRandom();
-        wallet.connect(provider).encrypt(password, (progress) => {
+        wallet.connect(_1.provider).encrypt(password, (progress) => {
             console.log("Encrypting: " + parseInt(progress) * 100 + "% complete");
         }).then((keystore) => {
-            const address = web3.eth.accounts.privateKeyToAccount(`${wallet.privateKey}`);
+            const address = _1.web3.eth.accounts.privateKeyToAccount(`${wallet.privateKey}`);
             const walletMnemonic = wallet.mnemonic; // 있음 
             const uuid = (0, uuid_1.v5)(`${wallet.mnemonic.phrase}`, '1a30bae5-e589-47b1-9e77-a7da2cdbc2b8');
             const saving = {
@@ -170,7 +146,7 @@ router.get('/accounts', (req, res, next) => __awaiter(void 0, void 0, void 0, fu
 router.post('/accounts/add/new', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const wallet = req.body.wallet;
     try {
-        const newAccount = web3.eth.accounts.create();
+        const newAccount = _1.web3.eth.accounts.create();
         console.log(newAccount);
         const d = wallet;
         const originKS = JSON.parse(d.keystore);
@@ -239,7 +215,7 @@ router.post('/accounts/add/origin', (req, res, next) => __awaiter(void 0, void 0
     const wallet = req.body.wallet;
     const privateKey = req.body.privateKey;
     try {
-        const newAccount = web3.eth.accounts.privateKeyToAccount(privateKey);
+        const newAccount = _1.web3.eth.accounts.privateKeyToAccount(privateKey);
         console.log(newAccount);
         const d = wallet;
         const renewdWallet = Object.assign(Object.assign({}, d), { addresses: [
@@ -331,7 +307,7 @@ router.delete('/accounts/delete/:address', (req, res, next) => __awaiter(void 0,
 router.get('/balance/:address', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const address = req.params['address'];
     try {
-        const balance = yield provider.getBalance(address);
+        const balance = yield _1.provider.getBalance(address);
         console.log(balance);
         res.status(200).json({ success: true, message: `이더리움 잔액조회 성공`, data: `${balance}` }); //balance 는 bigNumber 이고, bigNumber  는  .toString() 해주어야함.
     }
@@ -381,7 +357,7 @@ router.post('/restore', (req, res, next) => __awaiter(void 0, void 0, void 0, fu
             console.log("Encrypting: " + parseInt(percent) * 100 + "% complete");
         });
         encryptPromise.then((keystore) => {
-            const address = web3.eth.accounts.privateKeyToAccount(`${wallet.privateKey}`);
+            const address = _1.web3.eth.accounts.privateKeyToAccount(`${wallet.privateKey}`);
             const walletMnemonic = wallet.mnemonic; // 있음 
             const uuid = (0, uuid_1.v5)(`${wallet.mnemonic.phrase}`, '1a30bae5-e589-47b1-9e77-a7da2cdbc2b8');
             const saving = {
@@ -458,13 +434,39 @@ router.patch('/accounts/name/:address', (req, res, next) => __awaiter(void 0, vo
         res.status(500).json({ success: false, message: `주소에 대한 이름 생성 및 변경 실패:${err}`, data: null });
     }
 }));
+router.post('/send/ether', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const to = req.body.to;
+    const amount = req.body.amount;
+    // const from = req.body.from;
+    console.log(`PARSED ETHER: ${ethers_1.ethers.utils.parseEther(amount)}`);
+    _1.web3.eth.accounts.wallet.add(_1.OWNER_PRIVATE_KEY);
+    try {
+        const txParams = {
+            from: _1.OWNER,
+            to: to,
+            value: _1.web3.utils.toWei(amount),
+            gas: 8000000,
+            // gasPrice: ethers.utils.hexlify(parseInt(`${await provider.getGasPrice()}`)),
+        };
+        yield _1.web3.eth.sendTransaction(txParams).then((receipt) => {
+            console.log("///////////////RECEIPT//////////////////");
+            console.log(receipt);
+            console.log("////////////////////////////////////////");
+            res.status(200).json({ success: false, message: `이더리움 전송 성공!`, data: receipt });
+        });
+    }
+    catch (err) {
+        console.log(err);
+        res.status(500).json({ success: false, message: `이더리움 전송 실패 : ${err}`, data: null });
+    }
+}));
 ////==========================보류 ===============================///
 //[x]  아직 보류 !!~!// 신규 지갑 생성 : 니모닉은 지갑을 구분하는 문구임. privatekey만 있으면 account는 가져올 수 있음 ==> 프론트에서 secure storage 저장
 //생성시 provider 없음
 router.post('/create/web3/new', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const newWallet = web3.eth.accounts.wallet.create(1);
-        const newAddress = web3.eth.accounts.create();
+        const newWallet = _1.web3.eth.accounts.wallet.create(1);
+        const newAddress = _1.web3.eth.accounts.create();
         console.log(`==-=====ADDRESS=====`);
         console.log(newAddress);
         console.log('==================');

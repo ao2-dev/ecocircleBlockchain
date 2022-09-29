@@ -3,26 +3,51 @@ import express,  {Request, Response, NextFunction, Router} from 'express';
 import tokenRouter from './token';
 import wallterRouter from './wallet';
 import socketRouter from './socket';
+import coinRouter from './coin';
 import * as dotenv from 'dotenv'
 import { ethers } from 'ethers';
+import { Token } from '../contracts';
+import Web3 from 'web3';
+import { AbiItem } from 'web3-utils';
+import CoinGecko from 'coingecko-api';
 
 
+
+//env
 dotenv.config()
-//const web3 = new Web3(new Web3.providers.HttpProvider(GANACHE_RPC_SERVER));
-//const web3= new Web3(GANACHE_RPC_SERVER);
+export const {OWNER_PRIVATE_KEY,INFURA_API_KEY,INFURA_ROPSTEN_SERVER,OWNER,INFURA_ROPSTEN_WEBSOCKET} = process.env;
 
-const {OWNER_PRIVATE_KEY,INFURA_API_KEY,TEST} = process.env;
-// const web3 = new Web3(new Web3.providers.HttpProvider(INFURA_GORLI_SERVER!));
 
-const provider= new ethers.providers.InfuraProvider("ropsten",
-INFURA_API_KEY
-)
-
+//router
 const router: Router = express.Router();
-//const payRouter:Router = require('./pay');
 router.use('/token', tokenRouter);
 router.use('/wallet', wallterRouter);
 router.use('/socket', socketRouter);
+router.use('/coin', coinRouter);
+
+//ethers.js
+export const provider= new ethers.providers.InfuraProvider("ropsten",
+INFURA_API_KEY
+)
+export const tokenSC=new ethers.Contract(Token.address, Token.abi, provider);
+export const signer = new ethers.Wallet(OWNER_PRIVATE_KEY!, provider);
+export const tokenSCSigned= tokenSC.connect(signer);
+
+
+//web3.js
+export const web3=new Web3(new Web3.providers.HttpProvider(INFURA_ROPSTEN_SERVER!));
+export const tokenSCWeb3=new web3.eth.Contract(Token.abi as AbiItem[] , Token.address);
+
+
+//websocket
+export const wsProvider= new ethers.providers.WebSocketProvider(INFURA_ROPSTEN_WEBSOCKET!,"ropsten");
+
+
+//external api
+export const CoinGeckoClient = new CoinGecko();
+
+
+
 
 /**
  * @swagger

@@ -21,24 +21,40 @@ var __importStar = (this && this.__importStar) || function (mod) {
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
+var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.CoinGeckoClient = exports.wsProvider = exports.tokenSCWeb3 = exports.web3 = exports.tokenSCSigned = exports.signer = exports.tokenSC = exports.provider = exports.INFURA_ROPSTEN_WEBSOCKET = exports.OWNER = exports.INFURA_ROPSTEN_SERVER = exports.INFURA_API_KEY = exports.OWNER_PRIVATE_KEY = void 0;
 const express_1 = __importDefault(require("express"));
 const token_1 = __importDefault(require("./token"));
 const wallet_1 = __importDefault(require("./wallet"));
 const socket_1 = __importDefault(require("./socket"));
+const coin_1 = __importDefault(require("./coin"));
 const dotenv = __importStar(require("dotenv"));
 const ethers_1 = require("ethers");
+const contracts_1 = require("../contracts");
+const web3_1 = __importDefault(require("web3"));
+const coingecko_api_1 = __importDefault(require("coingecko-api"));
+//env
 dotenv.config();
-//const web3 = new Web3(new Web3.providers.HttpProvider(GANACHE_RPC_SERVER));
-//const web3= new Web3(GANACHE_RPC_SERVER);
-const { OWNER_PRIVATE_KEY, INFURA_API_KEY, TEST } = process.env;
-// const web3 = new Web3(new Web3.providers.HttpProvider(INFURA_GORLI_SERVER!));
-const provider = new ethers_1.ethers.providers.InfuraProvider("ropsten", INFURA_API_KEY);
+_a = process.env, exports.OWNER_PRIVATE_KEY = _a.OWNER_PRIVATE_KEY, exports.INFURA_API_KEY = _a.INFURA_API_KEY, exports.INFURA_ROPSTEN_SERVER = _a.INFURA_ROPSTEN_SERVER, exports.OWNER = _a.OWNER, exports.INFURA_ROPSTEN_WEBSOCKET = _a.INFURA_ROPSTEN_WEBSOCKET;
+//router
 const router = express_1.default.Router();
-//const payRouter:Router = require('./pay');
 router.use('/token', token_1.default);
 router.use('/wallet', wallet_1.default);
 router.use('/socket', socket_1.default);
+router.use('/coin', coin_1.default);
+//ethers.js
+exports.provider = new ethers_1.ethers.providers.InfuraProvider("ropsten", exports.INFURA_API_KEY);
+exports.tokenSC = new ethers_1.ethers.Contract(contracts_1.Token.address, contracts_1.Token.abi, exports.provider);
+exports.signer = new ethers_1.ethers.Wallet(exports.OWNER_PRIVATE_KEY, exports.provider);
+exports.tokenSCSigned = exports.tokenSC.connect(exports.signer);
+//web3.js
+exports.web3 = new web3_1.default(new web3_1.default.providers.HttpProvider(exports.INFURA_ROPSTEN_SERVER));
+exports.tokenSCWeb3 = new exports.web3.eth.Contract(contracts_1.Token.abi, contracts_1.Token.address);
+//websocket
+exports.wsProvider = new ethers_1.ethers.providers.WebSocketProvider(exports.INFURA_ROPSTEN_WEBSOCKET, "ropsten");
+//external api
+exports.CoinGeckoClient = new coingecko_api_1.default();
 /**
  * @swagger
  * components:

@@ -20,7 +20,7 @@
 // }
 // dotenv.config()
 // const router: Router = express.Router();
-// const {OWNER_PRIVATE_KEY,INFURA_ROPSTEN_SERVER,OWNER_ADDRESS,INFURA_API_KEY} = process.env;
+// const {OWNER_PRIVATE_KEY,INFURA_ROPSTEN_SERVER,OWNER,INFURA_API_KEY} = process.env;
 // const provider= new ethers.providers.InfuraProvider("ropsten",
 // INFURA_API_KEY
 // )

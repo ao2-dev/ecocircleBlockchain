@@ -34,13 +34,13 @@ app.use(function(req, res, next) {
   });
 
 
-//    app.listen('1234', ()=>{
-//     console.log(`
-//     ################################################
-//     🛡️  Server listening on port: 1234🛡️
-//     ################################################
-//     `)
-// })
+   app.listen('1234', ()=>{
+    console.log(`
+    ################################################
+    🛡️  Server listening on port: 1234🛡️
+    ################################################
+    `)
+})
   
 
 const {OWNER_PRIVATE_KEY,INFURA_ROPSTEN_WEBSOCKET} = process.env;
@@ -71,10 +71,10 @@ socket.on('connection', (ws:any, req:any)=> {
 //const socket=new WebSocket("ws://localhost:1235")
 
 
-app.listen(PORT, ()=>{
-    console.log(`
-    ################################################
-    🛡️  Server listening on port: ${PORT}🛡️
-    ################################################
-    `)
-})
+// app.listen(PORT, ()=>{
+//     console.log(`
+//     ################################################
+//     🛡️  Server listening on port: ${PORT}🛡️
+//     ################################################
+//     `)
+// })
