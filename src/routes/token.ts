@@ -434,7 +434,7 @@ router.post('/transfer/owner',onlyOwner,async(req:Request, res:Response, next:Ne
       console.log(`====txHash: ${tx.hash}`);
        await tx.wait().then((receipt:object)=>{
         console.log(receipt);
-        res.status(200).json({success:false, message:'owner 토큰 전송 성공', data:{from:OWNER,
+        res.status(200).json({success:true, message:'owner 토큰 전송 성공', data:{from:OWNER,
           to: to, amount:amount, txHash:tx.hash, receipt:receipt
           }});
 
@@ -527,7 +527,7 @@ router.post('/transfer',async(req:Request, res:Response, next:NextFunction)=>{
       const tx=await contract.transfer(to, amount);
       await tx.wait().then((receipt:object)=>{
         console.log(receipt);
-        res.status(200).json({success:false, message:'owner 토큰 전송 성공', data:{from:fromSigner.address,
+        res.status(200).json({success:true, message:'owner 토큰 전송 성공', data:{from:fromSigner.address,
           to: to, amount:amount, txHash:tx.hash, receipt:receipt
           }});
   
@@ -675,7 +675,7 @@ const address=req.params['address'];
       });
 
       console.log(eventList);
-      res.status(200).json({success:false, message:`송금 내역 가져오기 성공`, 
+      res.status(200).json({success:true, message:`송금 내역 가져오기 성공`, 
       data:eventList.sort((a,b)=>{
         return a.blockNumber-b.blockNumber
       })

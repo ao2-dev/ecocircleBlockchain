@@ -280,8 +280,8 @@ router.post('/accounts/add/origin',async(req:Request, res:Response, next:NextFun
 
 /**
    * @swagger
-   * /wallet/accounts/add/origin:
-   *   post:
+   * /wallet/accounts/delete/{address}:
+   *   delete:
    *     summary: 지갑에서 주소 삭제 [W-6]
    *     parameters:
    *       - in: path
@@ -511,7 +511,34 @@ router.patch('/accounts/name/:address',async(req:Request, res:Response, next:Nex
     }
 });
 
-
+/**
+   * @swagger
+   * /wallet/send/ether:
+   *   post:
+   *     summary: 이더 전송 [W-9]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *              to:
+   *                type: string
+   *              amount:
+   *                type: string
+   *              
+   *     tags:
+   *      - Wallet
+   *     description: 이더 전송 [W-9]
+   *     responses:
+   *       200:
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ResponseT' 
+   *         
+   */
 router.post('/send/ether', async(req:Request, res:Response, next:NextFunction)=> {
     const to=req.body.to;
     const amount=req.body.amount;
@@ -525,15 +552,17 @@ router.post('/send/ether', async(req:Request, res:Response, next:NextFunction)=>
             from: OWNER,
             to: to!,
             value: web3.utils.toWei(amount!),
-            gas:8000000,
+            gas:800000,
+            //gas: ethers.utils.hexlify(parseInt(`${await provider.getGasPrice()}`)),
            // gasPrice: ethers.utils.hexlify(parseInt(`${await provider.getGasPrice()}`)),
 
         }
+
        await web3.eth.sendTransaction(txParams).then((receipt)=>{
         console.log("///////////////RECEIPT//////////////////")
         console.log(receipt);
         console.log("////////////////////////////////////////")
-        res.status(200).json({success:false, message:`이더리움 전송 성공!`, data:receipt})
+        res.status(200).json({success:true, message:`이더리움 전송 성공!`, data:receipt})
        });
        
     }catch(err){
