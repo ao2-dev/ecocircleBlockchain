@@ -1,7 +1,11 @@
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -417,7 +421,7 @@ router.post('/transfer/owner', onlyOwner, (req, res, next) => __awaiter(void 0, 
         console.log(`====txHash: ${tx.hash}`);
         yield tx.wait().then((receipt) => {
             console.log(receipt);
-            res.status(200).json({ success: false, message: 'owner 토큰 전송 성공', data: { from: _1.OWNER,
+            res.status(200).json({ success: true, message: 'owner 토큰 전송 성공', data: { from: _1.OWNER,
                     to: to, amount: amount, txHash: tx.hash, receipt: receipt
                 } });
         });
@@ -500,7 +504,7 @@ router.post('/transfer', (req, res, next) => __awaiter(void 0, void 0, void 0, f
         const tx = yield contract.transfer(to, amount);
         yield tx.wait().then((receipt) => {
             console.log(receipt);
-            res.status(200).json({ success: false, message: 'owner 토큰 전송 성공', data: { from: fromSigner.address,
+            res.status(200).json({ success: true, message: 'owner 토큰 전송 성공', data: { from: fromSigner.address,
                     to: to, amount: amount, txHash: tx.hash, receipt: receipt
                 } });
         });
@@ -634,7 +638,7 @@ router.get('/event/transfer/:address', (req, res, next) => __awaiter(void 0, voi
             }
         });
         console.log(eventList);
-        res.status(200).json({ success: false, message: `송금 내역 가져오기 성공`,
+        res.status(200).json({ success: true, message: `송금 내역 가져오기 성공`,
             data: eventList.sort((a, b) => {
                 return a.blockNumber - b.blockNumber;
             })
