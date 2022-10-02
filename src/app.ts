@@ -32,13 +32,13 @@ app.use(function(req, res, next) {
   });
 
 
-   app.listen('1234', ()=>{
-    console.log(`
-    ################################################
-    🛡️  Server listening on port: 1234🛡️
-    ################################################
-    `)
-})
+//    app.listen('1234', ()=>{
+//     console.log(`
+//     ################################################
+//     🛡️  Server listening on port: 1234🛡️
+//     ################################################
+//     `)
+// })
   
 
 export const socket=new WebSocet.Server({port:1235});
@@ -68,10 +68,10 @@ socket.on('connection', (ws:any, req:any)=> {
 //const socket=new WebSocket("ws://localhost:1235")
 
 
-// app.listen(PORT, ()=>{
-//     console.log(`
-//     ################################################
-//     🛡️  Server listening on port: ${PORT}🛡️
-//     ################################################
-//     `)
-// })
+app.listen(PORT, ()=>{
+    console.log(`
+    ################################################
+    🛡️  Server listening on port: ${PORT}🛡️
+    ################################################
+    `)
+})
