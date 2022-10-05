@@ -2,7 +2,7 @@ import express,{Request, Response, NextFunction, Router}  from 'express';
 import {v5} from 'uuid';
 import { ethers, Wallet } from 'ethers';
 import { OWNER, OWNER_PRIVATE_KEY, provider, web3 } from '.';
-
+import QRCode from 'qrcode-svg';
 
 interface Web3AddressT{
     index?: number;
@@ -515,7 +515,7 @@ router.patch('/accounts/name/:address',async(req:Request, res:Response, next:Nex
    * @swagger
    * /wallet/send/ether:
    *   post:
-   *     summary: 이더 전송 [W-9]
+   *     summary: 이더 전송 [W-10]
    *     requestBody:
    *       required: true
    *       content:
@@ -530,7 +530,7 @@ router.patch('/accounts/name/:address',async(req:Request, res:Response, next:Nex
    *              
    *     tags:
    *      - Wallet
-   *     description: 이더 전송 [W-9]
+   *     description: 이더 전송 [W-10]
    *     responses:
    *       200:
    *         content:
@@ -571,6 +571,78 @@ router.post('/send/ether', async(req:Request, res:Response, next:NextFunction)=>
     }
 });
 
+/**
+   * @swagger
+   * /wallet/{qr}:
+   *   get:
+   *     summary: 상점 주소 QR 생성하기 (응답값:SVG) [W-11]
+   *     parameters:
+   *       - in: path
+   *         name: qr
+   *         schema:
+   *           type: string
+   *           foramt: 0x..
+   *         required: true
+   *         description: QR생성하고자 하는 상점의 address주소
+   *     tags:
+   *      - Wallet
+   *     description: 상점의 주소 QR 생성하기 (응답값:SVG) [W-11]
+   *     responses:
+   *       200:
+   *         content:
+   *           application/svg:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 id:
+   *                   type: string
+   *                 tag: 
+   *                   type: string
+   *                 type:
+   *                   type: string
+   *                 text:
+   *                   type: string
+   *                 fill:
+   *                   type: string
+   *                 src:
+   *                   type: string     
+   */
+
+router.get('/:qr',async(req:Request, res:Response, next:NextFunction)=>{
+
+ 
+    try {
+        var qrcode = new QRCode({
+            content: `https://ecocircle.co.kr/${req.params.qr}`,
+            padding: 4,
+            width: 1080,
+            height: 1080,
+            color: "#000000",
+            background: "#ffffff",
+            ecl: "M",
+          });
+          res.setHeader('Content-type', 'image/svg+xml');
+          const svg=qrcode.svg();
+          res.status(200).send(svg);
+        //   res.sendFile(`${req.params.qr}.svg`)
+        //   qrcode.save(`${req.params.qr}.svg`, function(error) {
+        //     if (error) throw error;
+        //     console.log("Done!");
+        //   });
+        
+        // QRCode.toDataURL(req.params.qr, {type:"svg",width:1080},(err, url) => {
+        //     const data = url.replace(/.*,/, '')
+        //     const img = Buffer.from(data, 'base64')
+        //     res.writeHead(200, { 'Content-Type': 'image/png' })
+        //     res.end(img)
+        //   });
+      
+        }catch(err){
+        console.log(err);
+        res.status(500).json({success:false, message: `qr code 실패:${err}` ,  data:null});
+        }
+});
+
 ////==========================보류 ===============================///
   //[x]  아직 보류 !!~!// 신규 지갑 생성 : 니모닉은 지갑을 구분하는 문구임. privatekey만 있으면 account는 가져올 수 있음 ==> 프론트에서 secure storage 저장
 //생성시 provider 없음
@@ -603,5 +675,10 @@ router.post('/create/web3/new', async(req:Request, res:Response, next:NextFuncti
         res.status(500).json({success:false, message:`지갑 생성 실패:${err}`, err:err})
     }
 });
+
+
+
+
+
 
 export default router;

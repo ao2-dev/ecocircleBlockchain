@@ -16,6 +16,7 @@ const express_1 = __importDefault(require("express"));
 const uuid_1 = require("uuid");
 const ethers_1 = require("ethers");
 const _1 = require(".");
+const qrcode_svg_1 = __importDefault(require("qrcode-svg"));
 const router = express_1.default.Router();
 /**
  * @swagger
@@ -438,7 +439,7 @@ router.patch('/accounts/name/:address', (req, res, next) => __awaiter(void 0, vo
    * @swagger
    * /wallet/send/ether:
    *   post:
-   *     summary: 이더 전송 [W-9]
+   *     summary: 이더 전송 [W-10]
    *     requestBody:
    *       required: true
    *       content:
@@ -453,7 +454,7 @@ router.patch('/accounts/name/:address', (req, res, next) => __awaiter(void 0, vo
    *
    *     tags:
    *      - Wallet
-   *     description: 이더 전송 [W-9]
+   *     description: 이더 전송 [W-10]
    *     responses:
    *       200:
    *         content:
@@ -487,6 +488,73 @@ router.post('/send/ether', (req, res, next) => __awaiter(void 0, void 0, void 0,
     catch (err) {
         console.log(err);
         res.status(500).json({ success: false, message: `이더리움 전송 실패 : ${err}`, data: null });
+    }
+}));
+/**
+   * @swagger
+   * /wallet/{qr}:
+   *   get:
+   *     summary: 상점 주소 QR 생성하기 (응답값:SVG) [W-11]
+   *     parameters:
+   *       - in: path
+   *         name: qr
+   *         schema:
+   *           type: string
+   *           foramt: 0x..
+   *         required: true
+   *         description: QR생성하고자 하는 상점의 address주소
+   *     tags:
+   *      - Wallet
+   *     description: 상점의 주소 QR 생성하기 (응답값:SVG) [W-11]
+   *     responses:
+   *       200:
+   *         content:
+   *           application/svg:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 id:
+   *                   type: string
+   *                 tag:
+   *                   type: string
+   *                 type:
+   *                   type: string
+   *                 text:
+   *                   type: string
+   *                 fill:
+   *                   type: string
+   *                 src:
+   *                   type: string
+   */
+router.get('/:qr', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        var qrcode = new qrcode_svg_1.default({
+            content: `https://ecocircle.co.kr/${req.params.qr}`,
+            padding: 4,
+            width: 1080,
+            height: 1080,
+            color: "#000000",
+            background: "#ffffff",
+            ecl: "M",
+        });
+        res.setHeader('Content-type', 'image/svg+xml');
+        const svg = qrcode.svg();
+        res.status(200).send(svg);
+        //   res.sendFile(`${req.params.qr}.svg`)
+        //   qrcode.save(`${req.params.qr}.svg`, function(error) {
+        //     if (error) throw error;
+        //     console.log("Done!");
+        //   });
+        // QRCode.toDataURL(req.params.qr, {type:"svg",width:1080},(err, url) => {
+        //     const data = url.replace(/.*,/, '')
+        //     const img = Buffer.from(data, 'base64')
+        //     res.writeHead(200, { 'Content-Type': 'image/png' })
+        //     res.end(img)
+        //   });
+    }
+    catch (err) {
+        console.log(err);
+        res.status(500).json({ success: false, message: `qr code 실패:${err}`, data: null });
     }
 }));
 ////==========================보류 ===============================///
