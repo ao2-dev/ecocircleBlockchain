@@ -7,8 +7,6 @@ import * as dotenv from 'dotenv' // see https://github.com/motdotla/dotenv#how-d
 import Router from './routes/index';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpecs } from './modules/swagger';
-import WebSocet from 'ws';
-
 
 
 dotenv.config()
@@ -32,33 +30,35 @@ app.use(function(req, res, next) {
   });
 
 
-//    app.listen('1234', ()=>{
-//     console.log(`
-//     ################################################
-//     🛡️  Server listening on port: 1234🛡️
-//     ################################################
-//     `)
-// })
-  
 
-export const socket=new WebSocet.Server({port:1235});
 
-socket.on('connection', (ws:any, req:any)=> {
-  const ip=req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-  console.log('새로운 클라이언트 접속',ip);
-  ws.on('message', (message:any)=> {
-    console.log(message);
-  });
+//export const socket=new WebSocet.Server({port:1235});
 
-  ws.on('error', (err:any)=>{
-    console.log(`error !!:${err}`);
-  });
+// socket.on('connection', (ws:any, req:any)=> {
+//   const ip=req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+//   console.log('새로운 클라이언트 접속',ip);
+//   ws.on('message', (message:any)=> {
+//     console.log(message);
+//   });
 
-  ws.on('close', ()=>{
-    console.log('클라이언트 접속 해제',ip);
+//   ws.on('error', (err:any)=>{
+//     console.log(`error !!:${err}`);
+//   });
+
+//   ws.on('close', ()=>{
+//     console.log('클라이언트 접속 해제',ip);
  
-  });
+//   });
+// })
+
+app.listen('1234', ()=>{
+  console.log(`
+  ################################################
+  🛡️  Server listening on port: 1234🛡️
+  ################################################
+  `)
 })
+
 // const wsProvider= new ethers.providers.WebSocketProvider(INFURA_ROPSTEN_WEBSOCKET!,"ropsten");
 // wsProvider.on("pending",(txHash)=>{
 //   wsProvider.getTransaction(txHash).then((tx)=>{
@@ -68,10 +68,10 @@ socket.on('connection', (ws:any, req:any)=> {
 //const socket=new WebSocket("ws://localhost:1235")
 
 
-app.listen(PORT, ()=>{
-    console.log(`
-    ################################################
-    🛡️  Server listening on port: ${PORT}🛡️
-    ################################################
-    `)
-})
+// app.listen(PORT, ()=>{
+//     console.log(`
+//     ################################################
+//     🛡️  Server listening on port: ${PORT}🛡️
+//     ################################################
+//     `)
+// })

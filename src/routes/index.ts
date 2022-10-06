@@ -15,7 +15,7 @@ import CoinGecko from 'coingecko-api';
 
 //env
 dotenv.config()
-export const {OWNER_PRIVATE_KEY,INFURA_API_KEY,INFURA_ROPSTEN_SERVER,OWNER,INFURA_ROPSTEN_WEBSOCKET} = process.env;
+export const {OWNER_PRIVATE_KEY,INFURA_API_KEY,INFURA_ROPSTEN_SERVER,OWNER,INFURA_ROPSTEN_WEBSOCKET,POLYGON_MUMBAI_RPC} = process.env;
 
 
 //router
@@ -26,27 +26,25 @@ router.use('/socket', socketRouter);
 router.use('/coin', coinRouter);
 
 //ethers.js
-export const provider= new ethers.providers.InfuraProvider("ropsten",
-INFURA_API_KEY
-)
+// export const provider= new ethers.providers.InfuraProvider("maticmum",
+// INFURA_API_KEY
+// )
+export const provider=new ethers.providers.JsonRpcProvider(POLYGON_MUMBAI_RPC);
 export const tokenSC=new ethers.Contract(Token.address, Token.abi, provider);
 export const signer = new ethers.Wallet(OWNER_PRIVATE_KEY!, provider);
 export const tokenSCSigned= tokenSC.connect(signer);
 
 
 //web3.js
-export const web3=new Web3(new Web3.providers.HttpProvider(INFURA_ROPSTEN_SERVER!));
+export const web3=new Web3(new Web3.providers.HttpProvider(POLYGON_MUMBAI_RPC!));
 export const tokenSCWeb3=new web3.eth.Contract(Token.abi as AbiItem[] , Token.address);
 
 
-//websocket
-export const wsProvider= new ethers.providers.WebSocketProvider(INFURA_ROPSTEN_WEBSOCKET!,"ropsten");
-
+// //websocket
+// export const wsProvider= new ethers.providers.WebSocketProvider(INFURA_ROPSTEN_WEBSOCKET!,"ropsten");
 
 //external api
 export const CoinGeckoClient = new CoinGecko();
-
-
 
 
 /**

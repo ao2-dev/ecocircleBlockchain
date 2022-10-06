@@ -54,13 +54,13 @@ app.use('/', index_1.default);
 app.use(function (req, res, next) {
     next((0, http_errors_1.default)(404));
 });
-app.listen('1234', () => {
-    console.log(`
-    ################################################
-    🛡️  Server listening on port: 1234🛡️
-    ################################################
-    `);
-});
+//    app.listen('1234', ()=>{
+//     console.log(`
+//     ################################################
+//     🛡️  Server listening on port: 1234🛡️
+//     ################################################
+//     `)
+// })
 exports.socket = new ws_1.default.Server({ port: 1235 });
 exports.socket.on('connection', (ws, req) => {
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
@@ -82,11 +82,11 @@ exports.socket.on('connection', (ws, req) => {
 //   })
 //  })
 //const socket=new WebSocket("ws://localhost:1235")
-// app.listen(PORT, ()=>{
-//     console.log(`
-//     ################################################
-//     🛡️  Server listening on port: ${PORT}🛡️
-//     ################################################
-//     `)
-// })
+app.listen(PORT, () => {
+    console.log(`
+    ################################################
+    🛡️  Server listening on port: ${PORT}🛡️
+    ################################################
+    `);
+});
 //# sourceMappingURL=app.js.map

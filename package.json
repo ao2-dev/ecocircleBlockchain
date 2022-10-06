@@ -77,6 +77,7 @@
     "swagger-cli": "^4.0.4",
     "swagger-jsdoc": "^6.2.5",
     "swagger-ui-express": "^4.5.0",
+    "truffle-plugin-verify": "^0.5.28",
     "uuid": "^9.0.0",
     "uuid4": "^2.0.3",
     "web3": "^1.8.0",

@@ -1,7 +1,7 @@
 
 const HDWalletProvider = require("@truffle/hdwallet-provider");
 require("dotenv").config();
-const {MNEMONIC, INFURA_API_KEY} = process.env;
+const {MNEMONIC, INFURA_API_KEY,POLYGON_MUMBAI_RPC,POLYGONSCAN_APIKEY} = process.env;
 
 /**
  * Use this file to configure your truffle project. It's seeded with some
@@ -82,7 +82,15 @@ module.exports = {
        gas: "4500000",
        gasPrice: "10000000000",
 
-    }
+    },
+    mumbai: {
+      provider: ()=> new HDWalletProvider(MNEMONIC,POLYGON_MUMBAI_RPC,0),
+      network_id: 80001,
+      confirmations: 2,
+      timeoutBlocks: 200,
+      skipDryRun: true,
+      networkCheckTimeout: 100000,
+    },
     //
     // An additional network, but with some advanced options…
     // advanced: {
@@ -112,9 +120,14 @@ module.exports = {
     //   production: true    // Treats this network as if it was a public net. (default: false)
     // }
   },
-  rpc: {
-    host: "127.0.0.1",
-    port: 7545
+  // rpc: {
+  //   host: "127.0.0.1",
+  //   port: 7545
+  // },
+  plugins:['truffle-plugin-verify'],
+  api_keys: {
+    polygonscan:POLYGONSCAN_APIKEY,
+
   },
   // Set default mocha options here, use special reporters, etc.
   mocha: {
