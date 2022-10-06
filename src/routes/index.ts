@@ -15,7 +15,7 @@ import CoinGecko from 'coingecko-api';
 
 //env
 dotenv.config()
-export const {OWNER_PRIVATE_KEY,INFURA_API_KEY,INFURA_ROPSTEN_SERVER,OWNER,INFURA_ROPSTEN_WEBSOCKET,POLYGON_MUMBAI_RPC} = process.env;
+export const {OWNER_PRIVATE_KEY,INFURA_API_KEY,INFURA_ROPSTEN_SERVER,OWNER,INFURA_ROPSTEN_WEBSOCKET,POLYGON_MUMBAI_RPC,POLYGONSCAN_APIKEY} = process.env;
 
 
 //router
@@ -46,6 +46,8 @@ export const tokenSCWeb3=new web3.eth.Contract(Token.abi as AbiItem[] , Token.ad
 //external api
 export const CoinGeckoClient = new CoinGecko();
 
+//bip39
+export const bip39 = require('bip39')
 
 /**
  * @swagger
@@ -69,26 +71,43 @@ export const CoinGeckoClient = new CoinGecko();
  *      description: 지갑 정보가 담길 테이블(타입) 입니다.
  *      type: object
  *      properties:
- *        keystore: 
+ *        hash: 
  *          type: string
  *        addresses: 
  *          type: array
  *          items: 
- *            $ref: '#/components/schemas/Web3AddressT'
- *        uuid:
+ *            $ref: '#/components/schemas/AddressT'
+ *        mnenomic:
  *          type: string
- *        mnemonic:
- *          type: string
- *    Web3AddressT:
+ *    AddressT:
  *      description: 지갑 내에 저장될 주소 테이블(타입) 입니다. 
  *      type: object
  *      properties:
- *        index: 
+ *        idx: 
  *          type: integer
  *        address: 
  *          type: string
  *        privateKey:
- *          type: string    
+ *          type: string   
+ *    TokenT:
+ *      description: 토큰 기본 정보
+ *      type: object
+ *      properties:
+ *        idx: 
+ *          type: integer
+ *        address: 
+ *          type: string
+ *        name:
+ *          type: string   
+ *        symbol:
+ *          type: string
+ *        decimals:
+ *          type: integer
+ *        totalSupply:
+ *          type: integer
+ *        logoURI:
+ *          type: string
+ *  
  *    EventT:
  *      description: 트랜잭션 이벤트 타입
  *      type: object
@@ -112,21 +131,6 @@ export const CoinGeckoClient = new CoinGecko();
  *        to:
  *          type: string
  *        amount:
- *          type: interfer
- *    Dog:
- *      type: object
- *      properties:
- *        bark:
- *          type: boolean
- *        breed:
- *          type: string
- *          enum: [Dingo, Husky, Retriever, Shepherd]
- *    Cat:
- *      type: object
- *      properties:
- *        hunts:
- *          type: boolean
- *        age:
  *          type: integer
  * 
  */

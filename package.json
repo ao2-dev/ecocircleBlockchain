@@ -58,6 +58,7 @@
     "dotenv": "^16.0.2",
     "eth-lightwallet": "^4.0.0",
     "ethereumjs-util": "^7.1.5",
+    "ethereumjs-wallet": "^1.0.2",
     "ethers": "^5.7.1",
     "ethjs-provider-signer": "^0.1.4",
     "ethjs-query": "^0.3.8",
