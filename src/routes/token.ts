@@ -6,7 +6,11 @@ import { hexZeroPad } from 'ethers/lib/utils';
 import Web3 from 'web3';
 import { AbiItem } from 'web3-utils';
 import { OWNER, provider, tokenSC, tokenSCSigned, tokenSCWeb3 } from '.';
+import { TxReceiptT,} from '../models';
 dotenv.config()
+
+
+
 
 // interface EventT {
 //   blockNumber:number;
@@ -432,10 +436,12 @@ router.post('/transfer/owner',onlyOwner,async(req:Request, res:Response, next:Ne
 
       const tx=await tokenSCSigned.transfer(to, amount);
       console.log(`====txHash: ${tx.hash}`);
-       await tx.wait().then((receipt:object)=>{
-        console.log(receipt);
+       await tx.wait().then( (result:object) =>{
+            
+            const receipt:TxReceiptT = result as TxReceiptT;
+            console.log(`GAS USED:!!! +==>>>  ${receipt.gasUsed}`)
         res.status(200).json({success:true, message:'owner 토큰 전송 성공', data:{from:OWNER,
-          to: to, amount:amount, txHash:tx.hash, receipt:receipt
+          to: to, amount:amount, txHash:tx.hash, receipt:receipt,
           }});
 
        })
@@ -525,8 +531,11 @@ router.post('/transfer',async(req:Request, res:Response, next:NextFunction)=>{
       const fromSigner = new ethers.Wallet(privateKey, provider);
       const contract=tokenSC.connect(fromSigner);
       const tx=await contract.transfer(to, amount);
-      await tx.wait().then((receipt:object)=>{
-        console.log(receipt);
+      await tx.wait().then((result:object)=>{
+
+        const receipt:TxReceiptT = result as TxReceiptT;
+        console.log(`GAS USED:!!! +==>>>  ${receipt.gasUsed}`)
+        // console.log(receipt);
         res.status(200).json({success:true, message:'owner 토큰 전송 성공', data:{from:fromSigner.address,
           to: to, amount:amount, txHash:tx.hash, receipt:receipt
           }});
@@ -591,20 +600,28 @@ router.post('/transfer',async(req:Request, res:Response, next:NextFunction)=>{
    *         
    */
 router.post('/gas/transfer',async(req:Request, res:Response, next:NextFunction)=>{
-  const from = req.body.from; //보내는 주소
+  const privateKey= req.body.privateKey;
+  //const from = req.body.from; //보내는 주소
   const to=req.body.to; 
   const amount=req.body.amount;
 
   try{
       //const fromSigner = new ethers.Wallet(privateKey, provider);
       //const contract=tokenSCWeb3.methods.
-      await tokenSCWeb3.methods.transfer(to, amount).estimateGas({from:from}).then((gas:any)=>{
-        console.log(`${gas}`);
-      const parsedGas=utils.formatEther(gas);
-      console.log("============PArsedGAs========")
-      console.log(parsedGas);
-        res.status(200).json({success:false, message:'토큰 전송 성공', data:{wei: `${gas}`, ether:parsedGas}});
-      })
+
+      const fromSigner = new ethers.Wallet(privateKey, provider);
+      const contract=tokenSC.connect(fromSigner);
+     const gas= await contract.estimateGas.transfer(to, amount);
+     console.log(`wei::${gas}`);
+     const parsedGas= parseInt(`${gas}`) * 0.000000001;
+
+      // await tokenSCWeb3.methods.transfer(to, amount).estimateGas({from:from}).then((gas:any)=>{
+      //   console.log(`${gas}`);
+      // const parsedGas=utils.formatEther(gas);
+      // console.log("============PArsedGAs========")
+      // console.log(parsedGas);
+        res.status(200).json({success:false, message:'토큰 전송 성공', data:{gwei: `${gas}`, ether:parsedGas}});
+      // })
   }catch(err){
     console.log(err);
     res.status(500).json({success:false, message:`토큰 전송 실패:${err}`, data:null});
