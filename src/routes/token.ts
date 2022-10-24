@@ -565,9 +565,9 @@ router.post('/transfer',async(req:Request, res:Response, next:NextFunction)=>{
    *           schema:
    *             type: object
    *             properties:
-   *               from:
+   *               privateKey:
    *                 type: string
-   *                 description: 보내는 이의 공개키
+   *                 description: 보내는 이의 비공개키
    *               to:
    *                 type: string
    *                 description: 토큰을 보낼 주소
