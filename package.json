@@ -20,6 +20,7 @@
   "author": "yunjiChoi",
   "license": "ISC",
   "devDependencies": {
+    "@truffle/hdwallet-provider": "^2.1.0",
     "@types/coingecko-api": "^1.0.10",
     "@types/cookie-parser": "^1.4.3",
     "@types/eth-lightwallet": "^3.0.1",

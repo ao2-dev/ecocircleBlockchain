@@ -8,7 +8,7 @@ const Token_json_1 = __importDefault(require("../../build/contracts/Token.json")
 const Test_json_1 = __importDefault(require("../../build/contracts/Test.json"));
 exports.Token = {
     abi: Token_json_1.default.abi,
-    address: Token_json_1.default.networks[3].address,
+    address: Token_json_1.default.networks[80001].address,
 };
 exports.Test = {
     abi: Test_json_1.default.abi,

@@ -239,6 +239,54 @@ router.post('/mint',onlyOwner,async(req:Request, res:Response, next:NextFunction
   }
 });
 
+// // 토큰소각
+// /**
+//    * @swagger
+//    * /token/owner/burn:
+//    *   post:   
+//    *     summary: 토큰 소각 [T-5-1]
+//    *     parameters:
+//    *       - in: header
+//    *         name: OWNER
+//    *         schema:
+//    *           type: string
+//    *           foramt: 0x..
+//    *         required: true
+//    *     requestBody:
+//    *       description: 소각 할 양을 보내주세요
+//    *       required: true
+//    *       content:
+//    *         application/json:
+//    *           schema:
+//    *             type: object
+//    *             properties:
+//    *               amount:
+//    *                 type: integer     
+//    *     tags:
+//    *      - Token
+//    *     description: 토큰 소각 [T-5-1]
+//    *     responses:
+//    *       200:
+//    *         content:
+//    *           application/json:
+//    *             schema:
+//    *               $ref: '#/components/schemas/ResponseT'
+//    *             
+//    *         
+//    */
+// router.post('/owner/burn',onlyOwner,async(req:Request, res:Response, next:NextFunction)=>{
+//   const amount=req.body.amount;
+//   try {
+//     const tx=await tokenSCSigned.burnFromOwner(parseInt(amount))
+//      console.log(`Burn from owner in hash: ${tx.hash}`);
+//     res.status(200).json({success:true, message:'토큰 소각 성공', data:{txHash:tx.hash}});
+//   }catch(err){
+//     console.log(err);
+//     res.status(500).json({success:false, message:`토큰 소각 실패:${err}`, data:null});
+//   }
+// });
+
+
 // 토큰소각
 /**
    * @swagger
@@ -246,20 +294,16 @@ router.post('/mint',onlyOwner,async(req:Request, res:Response, next:NextFunction
    *   post:   
    *     summary: 토큰 소각 [T-5]
    *     parameters:
-   *       - in: header
-   *         name: OWNER
-   *         schema:
-   *           type: string
-   *           foramt: 0x..
-   *         required: true
    *     requestBody:
-   *       description: 소각 할 양을 보내주세요
+   *       description: address는 소각하려고자 하는 주소, amount는 소각 할 양
    *       required: true
    *       content:
    *         application/json:
    *           schema:
    *             type: object
    *             properties:
+   *               address:
+   *                 type: string
    *               amount:
    *                 type: integer     
    *     tags:
@@ -274,19 +318,24 @@ router.post('/mint',onlyOwner,async(req:Request, res:Response, next:NextFunction
    *             
    *         
    */
-router.post('/burn',onlyOwner,async(req:Request, res:Response, next:NextFunction)=>{
-  const amount=req.body.amount;
-  try {
-    const tx=await tokenSCSigned.burn(parseInt(amount))
-     console.log(`Burn in hash: ${tx.hash}`);
-    res.status(200).json({success:true, message:'토큰 소각 성공', data:null});
-  }catch(err){
-    console.log(err);
-    res.status(500).json({success:false, message:`토큰 소각 실패:${err}`, data:null});
-  }
+router.post('/burn', async(req:Request, res:Response, next:NextFunction)=>{
+    // const pv=req.body.privateKey;
+    const address= req.body.address;
+    const amount = req.body.amount;
+
+    try {
+      // const signer= new ethers.Wallet(pv, provider);
+      // const signed=tokenSC.connect(signer);
+      const tx=await tokenSCSigned.burn(address,parseInt(amount));
+      console.log(`Burn in hash ${tx.hash} `);
+      res.status(200).json({success:true, message:'토큰 소각 성공', data:{txHash:tx.hash}});
+
+    }catch(err){
+      console.log(err);
+      res.status(500).json({success:false, message:`토큰 소각 실패:${err}`, data:null});
+    }
+
 });
-
-
 
 //토탈발행량 조회
 /**

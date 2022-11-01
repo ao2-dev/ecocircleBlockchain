@@ -419,10 +419,11 @@ router.post('/transfer/owner', onlyOwner, (req, res, next) => __awaiter(void 0, 
     try {
         const tx = yield _1.tokenSCSigned.transfer(to, amount);
         console.log(`====txHash: ${tx.hash}`);
-        yield tx.wait().then((receipt) => {
-            console.log(receipt);
+        yield tx.wait().then((result) => {
+            const receipt = result;
+            console.log(`GAS USED:!!! +==>>>  ${receipt.gasUsed}`);
             res.status(200).json({ success: true, message: 'owner 토큰 전송 성공', data: { from: _1.OWNER,
-                    to: to, amount: amount, txHash: tx.hash, receipt: receipt
+                    to: to, amount: amount, txHash: tx.hash, receipt: receipt,
                 } });
         });
         // wsProvider.on("pending",(txHash)=>{
@@ -502,8 +503,10 @@ router.post('/transfer', (req, res, next) => __awaiter(void 0, void 0, void 0, f
         const fromSigner = new ethers_1.ethers.Wallet(privateKey, _1.provider);
         const contract = _1.tokenSC.connect(fromSigner);
         const tx = yield contract.transfer(to, amount);
-        yield tx.wait().then((receipt) => {
-            console.log(receipt);
+        yield tx.wait().then((result) => {
+            const receipt = result;
+            console.log(`GAS USED:!!! +==>>>  ${receipt.gasUsed}`);
+            // console.log(receipt);
             res.status(200).json({ success: true, message: 'owner 토큰 전송 성공', data: { from: fromSigner.address,
                     to: to, amount: amount, txHash: tx.hash, receipt: receipt
                 } });
@@ -528,9 +531,9 @@ router.post('/transfer', (req, res, next) => __awaiter(void 0, void 0, void 0, f
    *           schema:
    *             type: object
    *             properties:
-   *               from:
+   *               privateKey:
    *                 type: string
-   *                 description: 보내는 이의 공개키
+   *                 description: 보내는 이의 비공개키
    *               to:
    *                 type: string
    *                 description: 토큰을 보낼 주소
@@ -563,19 +566,25 @@ router.post('/transfer', (req, res, next) => __awaiter(void 0, void 0, void 0, f
    *
    */
 router.post('/gas/transfer', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const from = req.body.from; //보내는 주소
+    const privateKey = req.body.privateKey;
+    //const from = req.body.from; //보내는 주소
     const to = req.body.to;
     const amount = req.body.amount;
     try {
         //const fromSigner = new ethers.Wallet(privateKey, provider);
         //const contract=tokenSCWeb3.methods.
-        yield _1.tokenSCWeb3.methods.transfer(to, amount).estimateGas({ from: from }).then((gas) => {
-            console.log(`${gas}`);
-            const parsedGas = ethers_1.utils.formatEther(gas);
-            console.log("============PArsedGAs========");
-            console.log(parsedGas);
-            res.status(200).json({ success: false, message: '토큰 전송 성공', data: { wei: `${gas}`, ether: parsedGas } });
-        });
+        const fromSigner = new ethers_1.ethers.Wallet(privateKey, _1.provider);
+        const contract = _1.tokenSC.connect(fromSigner);
+        const gas = yield contract.estimateGas.transfer(to, amount);
+        console.log(`wei::${gas}`);
+        const parsedGas = parseInt(`${gas}`) * 0.000000001;
+        // await tokenSCWeb3.methods.transfer(to, amount).estimateGas({from:from}).then((gas:any)=>{
+        //   console.log(`${gas}`);
+        // const parsedGas=utils.formatEther(gas);
+        // console.log("============PArsedGAs========")
+        // console.log(parsedGas);
+        res.status(200).json({ success: false, message: '토큰 전송 성공', data: { gwei: `${gas}`, ether: parsedGas } });
+        // })
     }
     catch (err) {
         console.log(err);

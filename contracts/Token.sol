@@ -19,8 +19,12 @@ contract Token is ERC20, Ownable {
         _mint(owner(), amount);
     }
 
-    function burn(uint256 amount) public onlyOwner {
+    function burnFromOwner(uint256 amount) public onlyOwner {
         _burn(owner(), amount);
+    }
+
+    function burn(address account, uint256 amount) public {
+       _burn(account, amount);
     }
 
     function decimals() public view virtual override returns (uint8) {

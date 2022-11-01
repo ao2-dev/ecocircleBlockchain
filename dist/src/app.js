@@ -26,7 +26,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.socket = void 0;
 const express_1 = __importDefault(require("express"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const path_1 = __importDefault(require("path"));
@@ -36,7 +35,6 @@ const dotenv = __importStar(require("dotenv")); // see https://github.com/motdot
 const index_1 = __importDefault(require("./routes/index"));
 const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
 const swagger_1 = require("./modules/swagger");
-const ws_1 = __importDefault(require("ws"));
 dotenv.config();
 const app = (0, express_1.default)();
 const PORT = process.env.PORT;
@@ -54,27 +52,27 @@ app.use('/', index_1.default);
 app.use(function (req, res, next) {
     next((0, http_errors_1.default)(404));
 });
-//    app.listen('1234', ()=>{
-//     console.log(`
-//     ################################################
-//     🛡️  Server listening on port: 1234🛡️
-//     ################################################
-//     `)
+//export const socket=new WebSocet.Server({port:1235});
+// socket.on('connection', (ws:any, req:any)=> {
+//   const ip=req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+//   console.log('새로운 클라이언트 접속',ip);
+//   ws.on('message', (message:any)=> {
+//     console.log(message);
+//   });
+//   ws.on('error', (err:any)=>{
+//     console.log(`error !!:${err}`);
+//   });
+//   ws.on('close', ()=>{
+//     console.log('클라이언트 접속 해제',ip);
+//   });
 // })
-exports.socket = new ws_1.default.Server({ port: 1235 });
-exports.socket.on('connection', (ws, req) => {
-    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-    console.log('새로운 클라이언트 접속', ip);
-    ws.on('message', (message) => {
-        console.log(message);
-    });
-    ws.on('error', (err) => {
-        console.log(`error !!:${err}`);
-    });
-    ws.on('close', () => {
-        console.log('클라이언트 접속 해제', ip);
-    });
-});
+// app.listen('1234', ()=>{
+//   console.log(`
+//   ################################################
+//   🛡️  Server listening on port: 1234🛡️
+//   ################################################
+//   `)
+// })
 // const wsProvider= new ethers.providers.WebSocketProvider(INFURA_ROPSTEN_WEBSOCKET!,"ropsten");
 // wsProvider.on("pending",(txHash)=>{
 //   wsProvider.getTransaction(txHash).then((tx)=>{
