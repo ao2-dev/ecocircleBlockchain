@@ -11,6 +11,8 @@ contract EcoStatistics is Ownable {
         int256 schoolId;
     }
 
+    string public allRanks;
+
     function setRank(
         uint _rank,
         string memory _phone,
@@ -23,5 +25,9 @@ contract EcoStatistics is Ownable {
 
     function getStudentByRank(uint _rank) public view returns (Student memory) {
         return ranks[_rank];
+    }
+
+    function setAllRanks(string memory _ranks) public onlyOwner {
+        allRanks = _ranks;
     }
 }

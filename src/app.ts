@@ -55,13 +55,13 @@ app.use(function(req, res, next) {
 //   });
 // })
 
-// app.listen('1234', ()=>{
-//   console.log(`
-//   ################################################
-//   🛡️  Server listening on port: 1234🛡️
-//   ################################################
-//   `)
-// })
+app.listen('1234', ()=>{
+  console.log(`
+  ################################################
+  🛡️  Server listening on port: 1234🛡️
+  ################################################
+  `)
+})
 
 // const wsProvider= new ethers.providers.WebSocketProvider(INFURA_ROPSTEN_WEBSOCKET!,"ropsten");
 // wsProvider.on("pending",(txHash)=>{
@@ -72,11 +72,11 @@ app.use(function(req, res, next) {
 //const socket=new WebSocket("ws://localhost:1235")
 
 
-app.listen(PORT, ()=>{
-    console.log(`
-    ################################################
-    🛡️  Server listening on port: ${PORT}🛡️
-    ################################################
-    `)
-})
+// app.listen(PORT, ()=>{
+//     console.log(`
+//     ################################################
+//     🛡️  Server listening on port: ${PORT}🛡️
+//     ################################################
+//     `)
+// })
 
