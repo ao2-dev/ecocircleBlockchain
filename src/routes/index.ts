@@ -4,6 +4,7 @@ import tokenRouter from './token';
 import wallterRouter from './wallet';
 import socketRouter from './socket';
 import coinRouter from './coin';
+import statisticsRouter from './statistics';
 import * as dotenv from 'dotenv'
 import { ethers } from 'ethers';
 import { Token } from '../contracts';
@@ -24,6 +25,7 @@ router.use('/token', tokenRouter);
 router.use('/wallet', wallterRouter);
 router.use('/socket', socketRouter);
 router.use('/coin', coinRouter);
+router.use('/statistics', statisticsRouter);
 
 //ethers.js
 // export const provider= new ethers.providers.InfuraProvider("maticmum",
