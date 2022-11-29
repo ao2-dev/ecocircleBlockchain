@@ -62,6 +62,7 @@ router.post('/create', (req, res, next) => __awaiter(void 0, void 0, void 0, fun
     try {
         const mnemonic = yield _1.bip39.generateMnemonic();
         const hashedPassword = crypto_1.default.createHash(hashMethod, password).update(`${password}_${mnemonic}`).digest('hex');
+        const hashedMnemonic = crypto_1.default.createHash(hashMethod, mnemonic).update(`${mnemonic}`).digest('hex');
         console.log("-------MNEMINIC--------");
         console.log(mnemonic);
         console.log("----------------------");
@@ -88,6 +89,7 @@ router.post('/create', (req, res, next) => __awaiter(void 0, void 0, void 0, fun
             hash: hashedPassword,
             mnemonic: mnemonic,
             addresses: accounts,
+            hashedMnemonic: hashedMnemonic,
         };
         res.status(200).json({ success: true, message: ` 지갑 생성 성공!!`, data: newWallet });
     }
@@ -302,6 +304,7 @@ router.post('/restore', (req, res, next) => __awaiter(void 0, void 0, void 0, fu
         const hashedPassword = crypto_1.default.createHash(hashMethod, password).update(`${password}_${mnemonic}`).digest('hex');
         const seed = yield _1.bip39.mnemonicToSeed(mnemonic);
         const hdwallet = ethereumjs_wallet_1.hdkey.fromMasterSeed(seed);
+        const hashedMnemonic = crypto_1.default.createHash(hashMethod, mnemonic).update(`${mnemonic}`).digest('hex');
         let accounts = [];
         //최대 5개
         for (let i = 0; i < 1; i++) {
@@ -324,6 +327,7 @@ router.post('/restore', (req, res, next) => __awaiter(void 0, void 0, void 0, fu
             hash: hashedPassword,
             mnemonic: mnemonic,
             addresses: accounts,
+            hashedMnemonic: hashedMnemonic,
         };
         res.status(200).json({ success: true, message: `지갑 복구 성공!`, data: newWallet });
     }
@@ -549,6 +553,57 @@ router.post('/password', (req, res, next) => __awaiter(void 0, void 0, void 0, f
     catch (err) {
         console.log(err);
         res.status(500).json({ success: false, message: `비밀번호 매칭 확인 실패:${err}`, data: null });
+    }
+}));
+/**
+   * @swagger
+   * /wallet/mnemonic:
+   *   post:
+   *     summary: 니모닉 매칭 확인
+   *     requestBody:
+   *       required: true
+   *       description: hashedMnemonic는 기존 db에 저장된 mnemonic 해쉬값, mnemonic 은 유저가 복구하기 위해 입력한 니모닉 값
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *              hashedMnemonic:
+   *                type: string
+   *              mnemonic:
+   *                type: string
+   *
+   *     tags:
+   *      - Wallet
+   *     description: 니모닉 매칭 확인
+   *     responses:
+   *       200:
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ResponseT'
+   *               properties:
+   *                 data:
+   *                   type: boolean
+   *                   nullable: true
+   *
+   *
+   */
+router.post('/mnemonic', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const hashedMnemonic = req.body.hashedMnemonic;
+    const mnemonic = req.body.mnemonic;
+    try {
+        const newHashedMnemonic = crypto_1.default.createHash(hashMethod, mnemonic).update(`${mnemonic}`).digest('hex');
+        if (hashedMnemonic === newHashedMnemonic) {
+            res.status(200).json({ success: true, message: `니모닉 일치`, data: true });
+        }
+        else {
+            res.status(200).json({ success: true, message: `니모닉 불일치`, data: false });
+        }
+    }
+    catch (err) {
+        console.log(err);
+        res.status(500).json({ success: false, message: `니모닉 매칭 확인 실패:${err}`, data: null });
     }
 }));
 /**
