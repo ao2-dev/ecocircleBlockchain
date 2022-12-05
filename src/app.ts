@@ -7,7 +7,7 @@ import * as dotenv from 'dotenv' // see https://github.com/motdotla/dotenv#how-d
 import Router from './routes/index';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpecs } from './modules/swagger';
-import cors from 'cors';
+//import cors from 'cors';
 
 
 dotenv.config()
@@ -25,9 +25,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 app.use('/', Router);
 
-app.use(cors({
-  origin: 'http://127.0.0.1:3000',
-}))
+// app.use(cors({
+//   origin: 'http://127.0.0.1:3000',
+// }))
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
     next(createError(404));
