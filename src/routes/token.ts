@@ -477,10 +477,6 @@ router.post('/transfer/owner',onlyOwner,async(req:Request, res:Response, next:Ne
 
  const to=req.body.to; 
   const amount=req.body.amount;
-  //const network=wsProvider.getNetwork();
-  //network.then(res=> console.log(`[${(new Date).toLocaleTimeString()}] Connected to chain ID ${res.chainId}`)) 
-  // const signer = new ethers.Wallet(OWNER_PRIVATE_KEY!, provider);
-  // const tokenSCSigned=tokenSC.connect(signer);
   try{
 
       const tx=await tokenSCSigned.transfer(to, amount);
@@ -494,28 +490,6 @@ router.post('/transfer/owner',onlyOwner,async(req:Request, res:Response, next:Ne
           }});
 
        })
-
-      // wsProvider.on("pending",(txHash)=>{
-      //   console.log("-----TXHASh-----");
-      //   console.log(`${txHash}`);
-      //   console.log("--------");
-      //   console.log(txHash);
-
-      //   console.log("----------")
-      //   if(txHash){
-      //      if(txHash===tx.hash){
-      //       console.log(`${txHash} pending......>.<`)
-      //       wsProvider.getTransaction(txHash).then((tx)=>{
-      //           console.log(tx);
-               
-                
-      //         })
-      //       }
-            
-      //   }
-      //  });
-     
-
 
   }catch(err){
     console.log(err);
