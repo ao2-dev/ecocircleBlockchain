@@ -74,22 +74,6 @@ router.post('/student/rank', async (req:Request, res:Response, next:NextFunction
     const schoolId= req.body.schoolId;
     try {
         const statisticsSCSigned= statisticsSC.connect(signer);
-        // studentList.map(async(std)=> {
-        //     const student: StudentT = {
-        //         rank: std.rank,
-        //         phone:String(std.phone),
-        //         point:std.point,
-        //         schoolId: std.school_id,
-        //     }
-        //     console.log(JSON.stringify(student));
-        //     // setStudentRank(student).then(tx=>{
-            
-
-        //     // })
-     
-           
-
-        // });
         const tx=await statisticsSCSigned.setRank(parseInt(rank), phone,parseInt(point), parseInt(schoolId));
         console.log(`Tx Successed in hash : ${tx.hash}`);
         res.status(200).json({success: true, message:'학생 순위 랭킹 등록 성공', data: null});
