@@ -29,7 +29,7 @@ interface StudentT {
    * @swagger
    * /statistics/student/rank:
    *   post:
-   *     summary: 학생 순위 랭킹 등록
+   *     summary: 학생(별) 순위 등록
    *     requestBody:
    *       description: 바이바이
    *       required: true
@@ -48,7 +48,7 @@ interface StudentT {
    *                 type: integer
    *     tags:
    *      - Statistics
-   *     description: 학생 순위 랭킹 등록
+   *     description: 학생(별) 순위 등록
    *     responses:
    *       200:
    *         content:
@@ -87,7 +87,7 @@ router.post('/student/rank', async (req:Request, res:Response, next:NextFunction
    * @swagger
    * /statistics/student/{rank}:
    *   get:
-   *     summary: 학생 랭킹 조회
+   *     summary: 순위로 학생 조회
    *     parameters:
    *       - in: path
    *         name: rank
@@ -97,7 +97,7 @@ router.post('/student/rank', async (req:Request, res:Response, next:NextFunction
    *         description: 조회하고자하는 랭킹넘버
    *     tags:
    *      - Statistics
-   *     description: 학생 랭킹 조회
+   *     description: 순위로 학생 조회
    *     responses:
    *       200:
    *         content:
@@ -140,6 +140,37 @@ router.get('/student/:rank',async (req:Request, res:Response, next:NextFunction)
 });
 
 
+
+/**
+   * @swagger
+   * /statistics/ranks/all:
+   *   post:
+   *     summary: 학생 랭킹 한 번에 등록 
+   *     requestBody:
+   *       description: 학생 랭킹 정보 토탈 json
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               jsonlist:
+   *                 type: object
+   *     tags:
+   *      - Statistics
+   *     description: 학생 랭킹 한 번에 등록 
+   *     responses:
+   *       200:
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ResponseT'
+   *               properties:
+   *                 data:
+   *                   type: object
+   *             
+   *         
+   */
 router.post('/ranks/all',async (req:Request, res:Response, next:NextFunction)=>{
   const jsonlist=req.body.jsonlist;
     try {
@@ -156,6 +187,27 @@ router.post('/ranks/all',async (req:Request, res:Response, next:NextFunction)=>{
     }
 });
 
+
+/**
+   * @swagger
+   * /statistics/allranks:
+   *   get:
+   *     summary: 학생 랭킹 통합 조회
+   *     tags:
+   *      - Statistics
+   *     description: 학생 랭킹 통합 조회
+   *     responses:
+   *       200:
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ResponseT'
+   *               properties:
+   *                 data:
+   *                   type: object
+   *             
+   *         
+   */
 router.get('/allranks',async (req:Request, res:Response, next:NextFunction)=>{
     try {
         // const listString=JSON.stringify(jsonlist);
