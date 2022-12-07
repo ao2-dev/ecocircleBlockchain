@@ -163,7 +163,8 @@ router.get('/allranks',async (req:Request, res:Response, next:NextFunction)=>{
       const statisticsSCSigned= statisticsSC.connect(signer);
       const result=await statisticsSCSigned.allRanks();
       console.log(result);
-      res.status(200).json({success: true, message:'allranks 성공', data: result});
+      const convert=JSON.parse(result);
+      res.status(200).json({success: true, message:'allranks 성공', data: convert});
     
         }catch(err){
             console.log(err);

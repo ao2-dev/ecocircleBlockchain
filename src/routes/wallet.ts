@@ -54,11 +54,6 @@ interface TxResponseT {
 
 
 
-
-
-
-
-
 const router: Router = express.Router();
 const hashMethod='sha256';
 const maxAccount=5;
@@ -102,20 +97,23 @@ router.post('/create', async(req:Request, res:Response, next:NextFunction)=>{
     const password=req.body.password;
     try {   
         const mnemonic = await bip39.generateMnemonic();
-        const hashedPassword=crypto.createHash(hashMethod,password).update(`${password}_${mnemonic}`).digest('hex');
+
+        //password, mnemonic 해쉬화 => 복호화 불가
+        const hashedPassword=crypto.createHash(hashMethod,password).update(`${password}_${mnemonic}`).digest('hex'); 
         const hashedMnemonic= crypto.createHash(hashMethod,mnemonic).update(`${mnemonic}`).digest('hex');
-        console.log("-------MNEMINIC--------")
-        console.log(mnemonic);
-        console.log("----------------------")
+        
+        //mnemonic문구를 seed로하여 계좌 생성
         const seed=await bip39.mnemonicToSeed(mnemonic);
         const hdwallet=hdkey.fromMasterSeed(seed);
     
         let accounts = [];
+
+        //하나의 주소만 생성하도록 함
         for (let i = 0; i < 1; i++) {
             let wallet = hdwallet.derivePath(hdpath + i).getWallet();
             let address = '0x' + wallet.getAddress().toString("hex");
             let privateKey = wallet.getPrivateKey().toString("hex");
-            let v3=wallet.toV3(hashedPassword);
+           // let v3=wallet.toV3(hashedPassword);
             //const keystore=JSON.stringify((await v3).crypto);
             const newAddr:AddressT ={
                 address:address,
@@ -127,11 +125,13 @@ router.post('/create', async(req:Request, res:Response, next:NextFunction)=>{
             }
             accounts.push(newAddr);
         }
+
+        // response type
         const newWallet:WalletT={
-            hash:hashedPassword,
+            hash:hashedPassword, //서버저장, password 검증 위함
             mnemonic: mnemonic,
             addresses: accounts,
-            hashedMnemonic: hashedMnemonic,
+            hashedMnemonic: hashedMnemonic, //mnemonic 검증 위함
         }
         res.status(200).json({success:true, message:` 지갑 생성 성공!!`, data:newWallet})
     
@@ -139,9 +139,10 @@ router.post('/create', async(req:Request, res:Response, next:NextFunction)=>{
         console.log(`[ERROR]: ${err}`);
         res.status(500).json({success:false, message:`지갑 생성 실패 : ${err}`, data:null})
     }
-  
- 
 });
+
+
+
 
 /**
    * @swagger
@@ -312,8 +313,10 @@ router.delete('/delete/:address',async(req:Request, res:Response, next:NextFunct
     const address=req.params['address'];
     const originWallet=req.body.wallet as WalletT;
     try {
-    
+        //web3로 블록체인 네트워크에서 주소(계정) 삭제
         web3.eth.accounts.wallet.remove(address);
+
+        //유저 디바이스 정보 교체위한 새로운 월렛 정보
         const newWallet:WalletT ={
             ...originWallet,
             addresses: [
@@ -321,6 +324,7 @@ router.delete('/delete/:address',async(req:Request, res:Response, next:NextFunct
             ]
         };
        res.status(200).json({success:true, message:'주소 삭제 성공', data:newWallet})
+
     } catch(err){
         res.status(500).json({success:false, message:`주소 삭제 실패:${err}`, data:null});
     }
@@ -360,15 +364,18 @@ router.delete('/delete/:address',async(req:Request, res:Response, next:NextFunct
    *             
    *         
    */
-//restore일 경우 하나만 우선 복구됨
+//restore일 경우 하나만 우선 복구됨 , 메타마스크와 동일한 방식으로 구현
+//mnemonic 매칭API  true로 나온 후 사용할 것
 router.post('/restore', async(req:Request, res:Response, next:NextFunction)=>{
     const password=req.body.password;
     const mnemonic=req.body.mnemonic;
+    
     try {
         const hashedPassword=crypto.createHash(hashMethod,password).update(`${password}_${mnemonic}`).digest('hex');
         const seed=await bip39.mnemonicToSeed(mnemonic);
         const hdwallet=hdkey.fromMasterSeed(seed);
         const hashedMnemonic= crypto.createHash(hashMethod,mnemonic).update(`${mnemonic}`).digest('hex');
+
         let accounts=[];
         //최대 5개
         for (let i = 0; i <1; i++) {
@@ -380,7 +387,6 @@ router.post('/restore', async(req:Request, res:Response, next:NextFunction)=>{
             const newAddr:AddressT ={
                 address:address,
                 privateKey:privateKey,
-                //keystore:keystore,
                 idx:i,
                 tokens:[],
                 name: `Account ${i}`
@@ -401,10 +407,6 @@ console.log(err);
     }
    
 })
-
-
-
-
 
 
 /**
@@ -448,13 +450,14 @@ console.log(err);
    */
 //send matic
 router.post('/send', needPK,async(req:Request, res:Response, next:NextFunction)=> {
-    const from = req.body.from;
-    const to=req.body.to;
-    const amount=req.body.amount;
-   // const from = req.body.from;
-    console.log(`PARSED ETHER: ${ethers.utils.parseEther(amount)}`);
-        try {
+    //needPK :  privateKey보내기
+    
+    const from = req.body.from; // 발신자
+    const to=req.body.to; //수신자
+    const amount=req.body.amount; //수량
+    // console.log(`PARSED ETHER: ${ethers.utils.parseEther(amount)}`);
 
+        try {
             const _signer= new ethers.Wallet(req.pk, provider);
             const txParams={
                 from:from,
@@ -462,12 +465,13 @@ router.post('/send', needPK,async(req:Request, res:Response, next:NextFunction)=
                 data:'',
                 value: ethers.utils.parseEther(amount),
                 gasPrice: ethers.utils.hexlify(parseInt(`${await provider.getGasPrice()}`)),
-    
             }
+
            await _signer.sendTransaction(txParams).then(tx =>{
             console.log("//////////////===TX===//////////////////")
             console.log(tx);
             console.log("////////////////////////////////////////")
+
             res.status(200).json({success:false, message:`매틱 전송 성공!`, data:tx})
            })
         }catch(err){
@@ -567,10 +571,11 @@ router.patch('/name/:address',async(req:Request, res:Response, next:NextFunction
     const name=req.body.name;
     const address:string=req.params['address'];
     const wallet:WalletT=req.body.wallet;
+
     try {
         const searchedAddr=wallet.addresses.filter(addr=> addr.address===address)[0];
         searchedAddr.name=name;
-       wallet.addresses.splice(searchedAddr.idx,1,searchedAddr);
+        wallet.addresses.splice(searchedAddr.idx,1,searchedAddr);
         res.status(200).json({success:true, message: `주소에 대한 이름 생성 및 변경 성공` ,  data:wallet}); 
 
     }catch(err){
@@ -621,10 +626,11 @@ router.patch('/name/:address',async(req:Request, res:Response, next:NextFunction
    *                     
    */
 //비밀번호 매칭확인
+//비공개키 보기위함
 router.post('/password',async(req:Request, res:Response, next:NextFunction)=>{
     const password=req.body.password;
     const mnemonic=req.body.mnemonic;
-    const hash=req.body.hash;
+    const hash=req.body.hash; // hashedPassword
     
        try {
            const hashedPassword=crypto.createHash(hashMethod,password).update(`${password}_${mnemonic}`).digest('hex');
@@ -677,6 +683,9 @@ router.post('/password',async(req:Request, res:Response, next:NextFunction)=>{
    * 
    *                     
    */
+
+//기존에 만들었던 지갑 불러오기위해 필요
+//지갑 생성 후 앱 삭제시 재설치 할때, 핸드폰 변경했을 때 등의 사유
 router.post('/mnemonic', async(req:Request, res:Response, next:NextFunction)=>{
     const hashedMnemonic=req.body.hashedMnemonic;
     const mnemonic= req.body.mnemonic;
@@ -731,7 +740,6 @@ router.post('/mnemonic', async(req:Request, res:Response, next:NextFunction)=>{
    *                   type: string     
    */
 
-
  router.get('/:qr',async(req:Request, res:Response, next:NextFunction)=>{
 
  
@@ -754,6 +762,10 @@ router.post('/mnemonic', async(req:Request, res:Response, next:NextFunction)=>{
         res.status(500).json({success:false, message: `qr code 실패:${err}` ,  data:null});
         }
 });
+
+export default router;
+
+
 
 // router.post('/token/balance',needNetwork,async(req:Request, res:Response, next:NextFunction)=>{
 //     const wallet:WalletT=req.body.wallet;
@@ -814,4 +826,4 @@ router.post('/mnemonic', async(req:Request, res:Response, next:NextFunction)=>{
 
 
 
-export default router;
+

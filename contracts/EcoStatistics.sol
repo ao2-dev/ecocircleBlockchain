@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract EcoStatistics is Ownable {
     mapping(uint => Student) ranks;
+
     struct Student {
         string phone;
         int256 point;

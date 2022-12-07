@@ -9,24 +9,6 @@ import { OWNER, provider, tokenSC, tokenSCSigned, tokenSCWeb3 } from '.';
 import { TxReceiptT,} from '../models';
 dotenv.config()
 
-
-
-
-// interface EventT {
-//   blockNumber:number;
-//   blockHash:string;
-//   transactionIndex:number;
-//   removed:boolean;
-//   address:string;
-//   data:string;
-//   topics:string[];
-//   transactionHash: string;
-//   logIndex:number;
-//   event: string;
-//   eventSignature:string;
-//   args:any;
-// };
-
 interface EventT<T>{
   blockNumber:number;
   blockHash:string;

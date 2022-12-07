@@ -19,18 +19,17 @@ dotenv.config()
 export const {OWNER_PRIVATE_KEY,INFURA_API_KEY,INFURA_ROPSTEN_SERVER,OWNER,INFURA_ROPSTEN_WEBSOCKET,POLYGON_MUMBAI_RPC,POLYGONSCAN_APIKEY} = process.env;
 
 
-//router
+//main router
 const router: Router = express.Router();
 router.use('/token', tokenRouter);
 router.use('/wallet', wallterRouter);
-router.use('/socket', socketRouter);
-router.use('/coin', coinRouter);
 router.use('/statistics', statisticsRouter);
 
+//imsi router
+router.use('/socket', socketRouter);
+router.use('/coin', coinRouter);
+
 //ethers.js
-// export const provider= new ethers.providers.InfuraProvider("maticmum",
-// INFURA_API_KEY
-// )
 export const provider=new ethers.providers.JsonRpcProvider(POLYGON_MUMBAI_RPC);
 export const tokenSC=new ethers.Contract(Token.address, Token.abi, provider);
 export const signer = new ethers.Wallet(OWNER_PRIVATE_KEY!, provider);
@@ -42,14 +41,19 @@ export const web3=new Web3(new Web3.providers.HttpProvider(POLYGON_MUMBAI_RPC!))
 export const tokenSCWeb3=new web3.eth.Contract(Token.abi as AbiItem[] , Token.address);
 
 
-// //websocket
+//bip39
+// 니모닉 코드만들 때  사용: 바이트코드를 읽어 각 문구 생성 
+export const bip39 = require('bip39')
+
+
+///===================현재 사용  X =============================//
+// websocket : 현재 사용X
 // export const wsProvider= new ethers.providers.WebSocketProvider(INFURA_ROPSTEN_WEBSOCKET!,"ropsten");
 
 //external api
 export const CoinGeckoClient = new CoinGecko();
+///============================================================//
 
-//bip39
-export const bip39 = require('bip39')
 
 /**
  * @swagger
@@ -157,25 +161,6 @@ router.get('/', (req:Request, res:Response, next:NextFunction)=> {
     res.status(200).json({success:true, message:'인덱스', data:'환영합니다'})
 })
 
-
-// router.get('/', async (req:Request, res:Response, next:NextFunction)=> {
-//     try {
-    
-//         const accounts = await web3.eth.getAccounts();
-// //0번째 주소 가져올 때 사용법
-// //         account = (await web3.eth.getAccounts())[0];
-// // i.addVoter(account);
-//         const  data={
-//             accounts,
-//         }
-//       res.status(200).json({data:data, key:OWNER_PRIVATE_KEY});
-
-//     }catch(err){
-//         console.log(err);
-//         res.status(500).send();
-//     }
-
-// });
 router.get('/welcome', (req:Request, res:Response, next:NextFunction)=> {
     res.send('welcome!!!');
 });
